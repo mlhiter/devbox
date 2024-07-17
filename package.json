@@ -1,8 +1,9 @@
 {
-  "name": "devbox",
+  "name": "devbox-sealos",
   "displayName": "devbox",
   "description": "help code for cloud sealos",
   "version": "0.0.1",
+  "publisher": "mlhiter",
   "engines": {
     "vscode": "^1.91.0"
   },
