@@ -1,22 +1,26 @@
-// extension.ts
-import * as vscode from 'vscode'
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
+import * as vscode from 'vscode';
 
-// 当扩展被激活时被调用
-// 扩展何时被激活：你第一次执行command命令时
+// This method is called when your extension is activated
+// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "devbox" is now active!')
 
-  // 命令在package.json里声明，通过register的方式写入具体的逻辑
-  const disposable = vscode.commands.registerCommand(
-    'devbox.helloWorld',
-    () => {
-      vscode.window.showInformationMessage('Hello World from devbox!')
-    }
-  )
+	// Use the console to output diagnostic information (console.log) and errors (console.error)
+	// This line of code will only be executed once when your extension is activated
+	console.log('Congratulations, your extension "devbox" is now active!');
 
-  // 注册给vscode上下文。此时即可用状态
-  context.subscriptions.push(disposable)
+	// The command has been defined in the package.json file
+	// Now provide the implementation of the command with registerCommand
+	// The commandId parameter must match the command field in package.json
+	const disposable = vscode.commands.registerCommand('devbox.helloWorld', () => {
+		// The code you place here will be executed every time your command is executed
+		// Display a message box to the user
+		vscode.window.showInformationMessage('Hello World from devbox!');
+	});
+
+	context.subscriptions.push(disposable);
 }
 
-// 当扩展失活时被调用
+// This method is called when your extension is deactivated
 export function deactivate() {}
