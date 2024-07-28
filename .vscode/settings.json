@@ -10,5 +10,20 @@
   },
   // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
   "typescript.tsc.autoDetect": "off",
-  "cSpell.words": ["devbox", "mlhiter", "outfile", "sealos"]
+  "cSpell.words": [
+    "Affordance",
+    "ALLUSERSPROFILE",
+    "devbox",
+    "extversion",
+    "Keychain",
+    "mlhiter",
+    "pkce",
+    "platformversion",
+    "sealos",
+    "uikind",
+    "vscodemachineid",
+    "vscodesessionid",
+    "vscodeversion"
+  ],
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }
