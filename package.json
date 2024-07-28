@@ -14,40 +14,6 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
-    "authentication": [
-      {
-        "label": "Devbox",
-        "id": "devbox"
-      }
-    ],
-    "configuration": [
-      {
-        "title": "Devbox",
-        "properties": {
-          "devbox.host": {
-            "type": "string",
-            "description": "Devbox Service URL. Update this if you are using a Devbox self-hosted installation.",
-            "default": "https://gitpod.io/",
-            "scope": "application"
-          },
-          "devbox.lsshExtensionIpcPort": {
-            "type": "number",
-            "description": "The port to use for the local SSH ipc server.",
-            "scope": "application"
-          },
-          "devbox.lssh.logLevel": {
-            "type": "string",
-            "description": "The log level for ssh proxy.",
-            "scope": "application",
-            "enum": [
-              "none",
-              "debug"
-            ],
-            "default": "none"
-          }
-        }
-      }
-    ],
     "commands": [
       {
         "command": "devbox.helloWorld",
