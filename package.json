@@ -4,6 +4,7 @@
   "description": "help code for cloud sealos",
   "version": "0.0.1",
   "publisher": "mlhiter",
+  "license": "MIT",
   "icon": "https://raw.githubusercontent.com/mlhiter/typora-images/master/202407181510292.png",
   "engines": {
     "vscode": "^1.91.0"
@@ -11,16 +12,26 @@
   "categories": [
     "Other"
   ],
+  "extensionKind": [
+    "ui"
+  ],
+  "keywords": [
+    "remote development",
+    "remote"
+  ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "devbox.helloWorld",
-        "title": "Hello World"
+        "command": "devbox.connectRemoteSSH",
+        "title": "Devbox: Connect to Remote SSH..."
       }
     ]
   },
+  "extensionDependencies": [
+    "ms-vscode-remote.remote-ssh"
+  ],
   "scripts": {
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
@@ -35,6 +46,9 @@
   "devDependencies": {
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
+    "@types/ssh2": "^1.15.0",
+    "@types/ssh2-streams": "^0.1.12",
+    "@types/tmp": "^0.2.6",
     "@types/vscode": "^1.91.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.11.0",
@@ -46,5 +60,12 @@
     "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@improbable-eng/grpc-web": "^0.15.0",
+    "@improbable-eng/grpc-web-node-http-transport": "^0.15.0",
+    "node-fetch": "^3.3.2",
+    "ssh2": "^1.15.0",
+    "ssh2-streams": "^0.4.10",
+    "tmp": "^0.2.3"
+  }
 }

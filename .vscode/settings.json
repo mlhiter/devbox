@@ -14,16 +14,19 @@
     "Affordance",
     "ALLUSERSPROFILE",
     "devbox",
+    "Encripted",
     "extversion",
     "Keychain",
     "mlhiter",
+    "opensshremotes",
     "pkce",
     "platformversion",
     "sealos",
     "uikind",
     "vscodemachineid",
     "vscodesessionid",
-    "vscodeversion"
+    "vscodeversion",
+    "xmss"
   ],
   "typescript.tsdk": "node_modules\\typescript\\lib"
 }
