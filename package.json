@@ -1,11 +1,25 @@
 {
-  "name": "devbox-sealos",
+  "name": "sealos-devbox",
   "displayName": "devbox",
-  "description": "help code for cloud sealos",
+  "description": "help code for cloud sealos devbox",
   "version": "0.0.1",
+  "keywords": [
+    "devbox",
+    "sealos",
+    "remote development",
+    "remote"
+  ],
+  "bugs": {
+    "url": "https://github.com/mlhiter/devbox/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlhiter/devbox"
+  },
+  "homepage": "https://github.com/mlhiter/devbox/blob/master/README.md",
   "publisher": "mlhiter",
   "license": "MIT",
-  "icon": "https://raw.githubusercontent.com/mlhiter/typora-images/master/202407181510292.png",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.91.0"
   },
@@ -15,19 +29,31 @@
   "extensionKind": [
     "ui"
   ],
-  "keywords": [
-    "remote development",
-    "remote"
+  "activationEvents": [
+    "onStartupFinished"
   ],
-  "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "devbox",
+      "properties": {}
+    },
     "commands": [
       {
         "command": "devbox.connectRemoteSSH",
         "title": "Devbox: Connect to Remote SSH..."
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "devbox-view",
+          "title": "Devbox",
+          "icon": "images/explorer.svg"
+        }
+      ]
+    }
   },
   "extensionDependencies": [
     "ms-vscode-remote.remote-ssh"
