@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
-import { Disposable } from './common/dispose'
+import { Disposable } from '../common/dispose'
+
 export class RemoteSSHConnector extends Disposable {
   constructor(context: vscode.ExtensionContext) {
     super()
