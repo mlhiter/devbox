@@ -4,6 +4,7 @@ import * as vscode from 'vscode'
 import Logger from './common/logger'
 import { Webview } from './commands/webview'
 import { RemoteSSHConnector } from './commands/remoteConnector'
+import { TreeView } from './commands/treeview'
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "devbox" is now active!')
@@ -26,6 +27,10 @@ export async function activate(context: vscode.ExtensionContext) {
   // remote connector
   const remoteConnector = new RemoteSSHConnector(context)
   context.subscriptions.push(remoteConnector)
+
+  // tree view
+  const treeView = new TreeView(context)
+  context.subscriptions.push(treeView)
 }
 
 export function deactivate() {}

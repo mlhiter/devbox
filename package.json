@@ -30,7 +30,8 @@
     "ui"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:devbox-view"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -49,6 +50,14 @@
         "title": "Devbox: Connect to Remote SSH"
       }
     ],
+    "views": {
+      "devbox-view": [
+        {
+          "id": "devbox-view",
+          "name": "Devbox"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {
