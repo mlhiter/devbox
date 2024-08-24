@@ -30,8 +30,7 @@
     "ui"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "onView:devbox-view"
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -48,22 +47,76 @@
       {
         "command": "devbox.connectRemoteSSH",
         "title": "Devbox: Connect to Remote SSH"
+      },
+      {
+        "command": "devboxDashboard.refresh",
+        "title": "Refresh Devbox",
+        "icon": "images/refresh.svg"
+      },
+      {
+        "command": "devboxDashboard.addDevbox",
+        "title": "Add Devbox",
+        "icon": "images/add.svg"
+      },
+      {
+        "command": "devboxDashboard.deleteDevbox",
+        "title": "Delete Devbox"
+      },
+      {
+        "command": "devboxDashboard.openDevbox",
+        "title": "Open Devbox",
+        "icon": "images/open.svg"
       }
     ],
     "views": {
-      "devbox-view": [
+      "devboxView": [
         {
-          "id": "devbox-view",
-          "name": "Devbox"
+          "id": "devboxDashboard",
+          "name": "My Projects"
+        },
+        {
+          "id": "devboxFeedback",
+          "name": "Feedback"
         }
       ]
     },
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "devbox-view",
+          "id": "devboxView",
           "title": "Devbox",
           "icon": "images/explorer.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "devboxDashboard",
+        "contents": "View and manage your devboxes,Now you can create a new devbox."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "devboxDashboard.addDevbox",
+          "when": "view == devboxDashboard",
+          "group": "navigation"
+        },
+        {
+          "command": "devboxDashboard.refresh",
+          "when": "view == devboxDashboard",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "devboxDashboard.deleteDevbox",
+          "when": "view == devboxDashboard"
+        },
+        {
+          "command": "devboxDashboard.openDevbox",
+          "when": "view == devboxDashboard",
+          "group": "inline"
         }
       ]
     }

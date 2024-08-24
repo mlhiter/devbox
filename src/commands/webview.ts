@@ -36,7 +36,7 @@ export class Webview extends Disposable {
       )
       srcUrl = panel.webview.asWebviewUri(filePath).toString()
     } else {
-      srcUrl = 'http://localhost:3000/static/js/main.js'
+      srcUrl = 'http://localhost:3001/static/js/main.js'
     }
     panel.webview.html = this.getWebviewContent(srcUrl)
 
