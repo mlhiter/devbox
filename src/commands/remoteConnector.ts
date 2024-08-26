@@ -6,25 +6,28 @@ export class RemoteSSHConnector extends Disposable {
     super()
     if (context.extension.extensionKind === vscode.ExtensionKind.UI) {
       this._register(
-        vscode.commands.registerCommand(
-          'devbox.connectRemoteSSH',
-          this.connectRemoteSSH.bind(this)
+        vscode.commands.registerCommand('devbox.connectRemoteSSH', (args) =>
+          this.connectRemoteSSH(args)
         )
       )
     }
   }
 
-  private async connectRemoteSSH() {
-    const host = await vscode.window.showInputBox({
-      placeHolder: 'Enter the SSH host (e.g., user@hostname)',
-      prompt: 'SSH Host',
-    })
+  private async connectRemoteSSH(args: {
+    sshDomain: string
+    sshPort: string
+    password: string
+  }) {
+    const { sshDomain, sshPort, password } = args
+    const sshCommand = `ssh ${sshDomain} -p ${sshPort}`
+    const sshPassword = password
 
-    if (host) {
-      await vscode.commands.executeCommand(
-        'opensshremotes.openEmptyWindow',
-        host
-      )
+    await vscode.window.showInformationMessage(
+      `SSH Domain: ${sshDomain}, Password: ${sshPassword}`
+    )
+
+    if (sshDomain) {
+      await vscode.commands.executeCommand('opensshremotes.addNewSshHost')
     }
   }
 }
