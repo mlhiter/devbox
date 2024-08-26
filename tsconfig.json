@@ -18,5 +18,6 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "strict": true
-  }
+  },
+  "include": ["src/**/*", "src/types/icon.d.ts"]
 }
