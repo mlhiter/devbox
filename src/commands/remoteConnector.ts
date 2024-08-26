@@ -18,16 +18,20 @@ export class RemoteSSHConnector extends Disposable {
     sshPort: string
     password: string
   }) {
-    const { sshDomain, sshPort, password } = args
+    // const { sshDomain, sshPort, password } = args
+    const sshDomain = '12.213123.123'
+    const sshPort = '22'
+    const password = '123123'
     const sshCommand = `ssh ${sshDomain} -p ${sshPort}`
     const sshPassword = password
 
-    await vscode.window.showInformationMessage(
-      `SSH Domain: ${sshDomain}, Password: ${sshPassword}`
+    const message = vscode.window.showInformationMessage(
+      `您的SSH登录命令: ${sshCommand},您的密码: ${sshPassword}`
     )
 
-    if (sshDomain) {
-      await vscode.commands.executeCommand('opensshremotes.addNewSshHost')
-    }
+    const connectRemote = vscode.commands.executeCommand(
+      'opensshremotes.addNewSshHost'
+    )
+    Promise.all([message, connectRemote])
   }
 }
