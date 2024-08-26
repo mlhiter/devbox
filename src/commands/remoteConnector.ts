@@ -18,10 +18,7 @@ export class RemoteSSHConnector extends Disposable {
     sshPort: string
     password: string
   }) {
-    // const { sshDomain, sshPort, password } = args
-    const sshDomain = '12.213123.123'
-    const sshPort = '22'
-    const password = '123123'
+    const { sshDomain, sshPort, password } = args
     const sshCommand = `ssh ${sshDomain} -p ${sshPort}`
     const sshPassword = password
 
