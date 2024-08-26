@@ -31,6 +31,22 @@ export async function activate(context: vscode.ExtensionContext) {
   // tree view
   const treeView = new TreeView(context)
   context.subscriptions.push(treeView)
+
+  const handleUri = (uri: vscode.Uri) => {
+    console.log('testing', uri)
+    const queryParams = new URLSearchParams(uri.query)
+    if (queryParams.has('sshDomain')) {
+      vscode.window.showInformationMessage(
+        `URI Handler says: ${queryParams.get('sshDomain') as string}`
+      )
+    }
+  }
+
+  context.subscriptions.push(
+    vscode.window.registerUriHandler({
+      handleUri,
+    })
+  )
 }
 
 export function deactivate() {}
