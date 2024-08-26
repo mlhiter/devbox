@@ -1,6 +1,8 @@
 import * as vscode from 'vscode'
 
 import { Disposable } from '../common/dispose'
+import { getDevboxList } from '../api'
+import { DevboxListItem } from '../types/devbox'
 
 export class TreeView extends Disposable {
   constructor(context: vscode.ExtensionContext) {
@@ -21,27 +23,32 @@ export class TreeView extends Disposable {
       // commands
       this._register(
         vscode.commands.registerCommand('devboxDashboard.refresh', () => {
-          vscode.window.showInformationMessage('refresh')
           myTreeDataProvider.refresh()
         })
       )
       this._register(
-        vscode.commands.registerCommand('devboxDashboard.addDevbox', () => {
-          vscode.window.showInformationMessage('add')
-          myTreeDataProvider.add()
-        })
+        vscode.commands.registerCommand(
+          'devboxDashboard.createDevbox',
+          (item: MyTreeItem) => {
+            myTreeDataProvider.create(item)
+          }
+        )
       )
       this._register(
-        vscode.commands.registerCommand('devboxDashboard.openDevbox', () => {
-          vscode.window.showInformationMessage('open')
-          myTreeDataProvider.open()
-        })
+        vscode.commands.registerCommand(
+          'devboxDashboard.openDevbox',
+          (item: MyTreeItem) => {
+            myTreeDataProvider.open(item)
+          }
+        )
       )
       this._register(
-        vscode.commands.registerCommand('devboxDashboard.deleteDevbox', () => {
-          vscode.window.showInformationMessage('delete')
-          myTreeDataProvider.delete()
-        })
+        vscode.commands.registerCommand(
+          'devboxDashboard.deleteDevbox',
+          (item: MyTreeItem) => {
+            myTreeDataProvider.delete(item)
+          }
+        )
       )
     }
   }
@@ -52,8 +59,19 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     new vscode.EventEmitter<MyTreeItem | undefined>()
   readonly onDidChangeTreeData: vscode.Event<MyTreeItem | undefined> =
     this._onDidChangeTreeData.event
+  private treeData: DevboxListItem[] = []
+
+  constructor() {
+    getDevboxList().then((data) => {
+      console.log('data', data)
+      this.treeData = data
+      this._onDidChangeTreeData.fire(undefined)
+    })
+  }
 
   refresh(): void {
+    vscode.window.showInformationMessage('refresh')
+
     this._onDidChangeTreeData.fire(undefined)
   }
 
@@ -61,25 +79,27 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     return element
   }
 
+  create(item: MyTreeItem) {
+    vscode.commands.executeCommand('devbox.openWebview')
+    vscode.window.showInformationMessage('create')
+  }
+
+  open(item: MyTreeItem) {
+    vscode.window.showInformationMessage('open' + item.label)
+  }
+
+  delete(item: MyTreeItem) {
+    vscode.window.showInformationMessage('delete' + item.label)
+  }
+
   getChildren(element?: MyTreeItem): Thenable<MyTreeItem[]> {
     if (element) {
       return Promise.resolve([])
     }
-
     // get data from server
-    const treeData = [
-      {
-        name: 'devbox1',
-        status: 'Running',
-      },
-      {
-        name: 'devbox2',
-        status: 'Stopped',
-      },
-    ]
-    const treeNodes = treeData.map((item) => {
+    const treeNodes = this.treeData.map((item) => {
       const treeItem = new MyTreeItem(
-        `${item.name} - ${item.status}`,
+        item.name,
         vscode.TreeItemCollapsibleState.None
       )
       treeItem.tooltip = item.name
