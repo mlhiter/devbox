@@ -33,12 +33,20 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(treeView)
 
   const handleUri = (uri: vscode.Uri) => {
-    console.log('testing', uri)
+    logger.trace('Handling Uri...', uri.toString())
+    if (uri.scheme !== 'vscode') {
+      return
+    }
     const queryParams = new URLSearchParams(uri.query)
-    if (queryParams.has('sshDomain')) {
-      vscode.window.showInformationMessage(
-        `URI Handler says: ${queryParams.get('sshDomain') as string}`
-      )
+    const sshDomain = queryParams.get('sshDomain')
+    const sshPort = queryParams.get('sshPort')
+    const password = queryParams.get('password')
+    if (sshDomain && sshPort && password) {
+      vscode.commands.executeCommand('devbox.connectRemoteSSH', {
+        sshDomain,
+        sshPort,
+        password,
+      })
     }
   }
 
