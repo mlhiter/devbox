@@ -1,15 +1,21 @@
 import React from 'react'
-import { ReactComponent as CIcon } from './public/c.svg'
-import { ReactComponent as FlaskIcon } from './public/flask.svg'
-import { ReactComponent as GinIcon } from './public/gin.svg'
-import { ReactComponent as GoIcon } from './public/go.svg'
-import { ReactComponent as HertzIcon } from './public/hertz.svg'
-import { ReactComponent as NodejsIcon } from './public/nodejs.svg'
-import { ReactComponent as NextjsIcon } from './public/nextjs.svg'
-import { ReactComponent as JavaIcon } from './public/java.svg'
-import { ReactComponent as PythonIcon } from './public/python.svg'
-import { ReactComponent as SpringBootIcon } from './public/spring-boot.svg'
-import { ReactComponent as VueIcon } from './public/vue.svg'
+import CIcon from './public/c.svg'
+import FlaskIcon from './public/flask.svg'
+import GinIcon from './public/gin.svg'
+import GoIcon from './public/go.svg'
+import RustIcon from './public/rust.svg'
+import HertzIcon from './public/hertz.svg'
+import NodejsIcon from './public/nodejs.svg'
+import NextjsIcon from './public/nextjs.svg'
+import JavaIcon from './public/java.svg'
+import PythonIcon from './public/python.svg'
+import SpringBootIcon from './public/spring-boot.svg'
+import VueIcon from './public/vue.svg'
+import UbuntuIcon from './public/ubuntu.svg'
+import DeleteIcon from './public/info/delete.svg'
+import AddIcon from './public/info/add.svg'
+import AttachIcon from './public/info/attach.svg'
+import ArrowLeft from './public/arrow-left.svg'
 
 const map: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
   c: CIcon,
@@ -23,6 +29,12 @@ const map: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
   python: PythonIcon,
   springBoot: SpringBootIcon,
   vue: VueIcon,
+  rust: RustIcon,
+  ubuntu: UbuntuIcon,
+  delete: DeleteIcon,
+  add: AddIcon,
+  attach: AttachIcon,
+  arrowLeft: ArrowLeft,
 }
 
 const MyIcon = ({ name }: { name: string }) => {

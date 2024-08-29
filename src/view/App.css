@@ -1,6 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .container {
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: Inter;
 }
 
 h1 {
@@ -15,12 +19,15 @@ h1 {
 }
 
 .card {
-  border: 1px solid #ccc;
-  padding: 20px;
+  border: none;
+  padding: 15px;
   text-align: center;
-  width: 350px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
+  width: 300px;
+  border-radius: 4px;
+  background-color: #f3f3f3;
+}
+.card:hover {
+  background-color: #e3e3e3;
 }
 
 .text-content {
@@ -34,25 +41,20 @@ h1 {
   justify-content: space-between;
 }
 
-.card:hover {
-  transform: scale(1.05);
-}
-
 .icon {
   font-size: 40px;
   margin-right: 10px;
 }
 
 .use-btn {
-  margin-top: 10px;
-  padding: 5px 10px;
-  background-color: #007bff;
+  padding: 6px 10px;
+  background-color: #007acc;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
 .use-btn:hover {
-  background-color: #0056b3;
+  background-color: #0361a3;
 }

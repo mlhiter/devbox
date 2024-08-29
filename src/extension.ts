@@ -40,12 +40,12 @@ export async function activate(context: vscode.ExtensionContext) {
     const queryParams = new URLSearchParams(uri.query)
     const sshDomain = queryParams.get('sshDomain')
     const sshPort = queryParams.get('sshPort')
-    const password = queryParams.get('password')
-    if (sshDomain && sshPort && password) {
+    const base64PrivateKey = queryParams.get('base64PrivateKey')
+    if (sshDomain && sshPort && base64PrivateKey) {
       vscode.commands.executeCommand('devbox.connectRemoteSSH', {
         sshDomain,
         sshPort,
-        password,
+        base64PrivateKey,
       })
     }
   }
