@@ -36,9 +36,7 @@ export class RemoteSSHConnector extends Disposable {
     const sshUser = sshDomain.split('@')[0]
     const sshHost = sshDomain.split('@')[1]
 
-    const normalPrivateKey = Buffer.from(base64PrivateKey, 'base64').toString(
-      'utf-8'
-    )
+    const normalPrivateKey = Buffer.from(base64PrivateKey, 'base64')
 
     vscode.window.showInformationMessage(
       `sshCommand:ssh ${sshDomain} -p ${sshPort};`
@@ -98,13 +96,21 @@ Host ${sshHost}
     // 把ssh私钥写入.ssh
     try {
       const sshKeyPath = defaultSSHKeyPath + `_${sshPort}`
+      console.log(normalPrivateKey)
       fs.writeFileSync(sshKeyPath, normalPrivateKey)
-      // 移除继承的权限
-      execSync(`icacls "${sshKeyPath}" /inheritance:r`)
-      // 为当前用户授予完全控制权限
-      execSync(`icacls "${sshKeyPath}" /grant:r ${process.env.USERNAME}:F`)
-      // 确保其他用户无法访问
-      execSync(`icacls "${sshKeyPath}" /remove:g everyone`)
+
+      // 针对mac和windows区别处理
+      if (os.platform() === 'win32') {
+        // 移除继承的权限
+        execSync(`icacls "${sshKeyPath}" /inheritance:r`)
+        // 为当前用户授予完全控制权限
+        execSync(`icacls "${sshKeyPath}" /grant:r ${process.env.USERNAME}:F`)
+        // 确保其他用户无法访问
+        execSync(`icacls "${sshKeyPath}" /remove:g everyone`)
+      } else {
+        // 设置文件权限为 600（仅文件所有者可读写）
+        execSync(`chmod 600 "${sshKeyPath}"`)
+      }
     } catch (error) {
       vscode.window.showErrorMessage(
         `Failed to write SSH private key: ${error}`
