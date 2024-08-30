@@ -15,7 +15,7 @@ import UbuntuIcon from './public/ubuntu.svg'
 import DeleteIcon from './public/info/delete.svg'
 import AddIcon from './public/info/add.svg'
 import AttachIcon from './public/info/attach.svg'
-import ArrowLeft from './public/arrow-left.svg'
+import ArrowLeft from './public/info/arrow-left.svg'
 
 const map: { [key: string]: React.FC<React.SVGProps<SVGSVGElement>> } = {
   c: CIcon,

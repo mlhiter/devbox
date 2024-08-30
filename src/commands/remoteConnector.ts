@@ -27,11 +27,57 @@ export class RemoteSSHConnector extends Disposable {
     return sshConfigPath ? untildify(sshConfigPath) : defaultSSHConfigPath
   }
 
+  private async ensureRemoteSSHExtInstalled(): Promise<boolean> {
+    const isOfficialVscode =
+      vscode.env.uriScheme === 'vscode' ||
+      vscode.env.uriScheme === 'vscode-insiders'
+    if (!isOfficialVscode) {
+      return true
+    }
+
+    const msVscodeRemoteExt = vscode.extensions.getExtension(
+      'ms-vscode-remote.remote-ssh'
+    )
+    if (msVscodeRemoteExt) {
+      return true
+    }
+
+    const install = 'Install'
+    const cancel = 'Cancel'
+
+    const action = await vscode.window.showInformationMessage(
+      'Please install "Remote - SSH" extension to connect to a Gitpod workspace.',
+      { modal: true },
+      install,
+      cancel
+    )
+
+    if (action === cancel) {
+      return false
+    }
+
+    vscode.window.showInformationMessage(
+      'Installing "ms-vscode-remote.remote-ssh" extension'
+    )
+
+    await vscode.commands.executeCommand(
+      'extension.open',
+      'ms-vscode-remote.remote-ssh'
+    )
+    await vscode.commands.executeCommand(
+      'workbench.extensions.installExtension',
+      'ms-vscode-remote.remote-ssh'
+    )
+
+    return true
+  }
+
   private async connectRemoteSSH(args: {
     sshDomain: string
     sshPort: string
     base64PrivateKey: string
   }) {
+    this.ensureRemoteSSHExtInstalled()
     const { sshDomain, sshPort, base64PrivateKey } = args
     const sshUser = sshDomain.split('@')[0]
     const sshHost = sshDomain.split('@')[1]
