@@ -102,31 +102,32 @@ Host ${sshHost}
       const existingConfig = fs.readFileSync(sshConfigPath, 'utf8')
       const lines = existingConfig.split('\n')
       let hostExists = false
-      let i = 0
+      let hostConfig = ''
 
-      while (i < lines.length) {
+      for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim()
-        if (line === `Host ${sshHost}`) {
-          let j = i + 1
-          while (j < lines.length && !lines[j].trim().startsWith('Host')) {
-            if (lines[j].trim() === `Port ${sshPort}`) {
+        if (line.startsWith('Host ')) {
+          const currentHost = line.split(' ')[1]
+          if (currentHost === sshHost) {
+            console.log('currentHost:', currentHost)
+            hostConfig = ''
+            for (let j = i; j < lines.length; j++) {
+              console.log('lines[j]:', lines[j])
+              hostConfig += lines[j].trim() + '\n'
+            }
+            console.log('hostConfig:', hostConfig)
+            if (hostConfig.includes(`Port ${sshPort}`)) {
               hostExists = true
               break
             }
-            j++
-          }
-          if (hostExists) {
-            break
           }
         }
-        i++
       }
 
       if (hostExists) {
-        vscode.window.showWarningMessage(
+        vscode.window.showInformationMessage(
           `SSH configuration for ${sshHost} with port ${sshPort} already exists.`
         )
-        return // If configuration already exists, return directly
       } else {
         fs.appendFileSync(sshConfigPath, sshConfig)
         vscode.window.showInformationMessage(

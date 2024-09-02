@@ -41,12 +41,21 @@ export async function activate(context: vscode.ExtensionContext) {
     const sshDomain = queryParams.get('sshDomain')
     const sshPort = queryParams.get('sshPort')
     const base64PrivateKey = queryParams.get('base64PrivateKey')
-    if (sshDomain && sshPort && base64PrivateKey) {
-      vscode.commands.executeCommand('devbox.connectRemoteSSH', {
-        sshDomain,
-        sshPort,
-        base64PrivateKey,
-      })
+    if (sshPort === '0') {
+      vscode.window.showInformationMessage(
+        'SSH Port is not correct,please try again'
+      )
+      return
+    }
+
+    {
+      if (sshDomain && sshPort && base64PrivateKey) {
+        vscode.commands.executeCommand('devbox.connectRemoteSSH', {
+          sshDomain,
+          sshPort,
+          base64PrivateKey,
+        })
+      }
     }
   }
 
