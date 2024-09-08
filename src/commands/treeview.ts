@@ -1,36 +1,39 @@
+import path from 'path'
+import * as os from 'os'
 import * as vscode from 'vscode'
 
 import { Disposable } from '../common/dispose'
-import { getDevboxList } from '../api'
+import { getDevboxList, parseSSHConfig } from '../api'
 import { DevboxListItem } from '../types/devbox'
 
 export class TreeView extends Disposable {
   constructor(context: vscode.ExtensionContext) {
     super()
     if (context.extension.extensionKind === vscode.ExtensionKind.UI) {
-      const myTreeDataProvider = new MyTreeDataProvider()
+      const projectTreeDataProvider = new MyTreeDataProvider('devboxDashboard')
+      const feedbackTreeDataProvider = new MyTreeDataProvider('devboxFeedback')
       // views
       this._register(
         vscode.window.createTreeView('devboxDashboard', {
-          treeDataProvider: myTreeDataProvider,
+          treeDataProvider: projectTreeDataProvider,
         })
       )
       this._register(
         vscode.window.createTreeView('devboxFeedback', {
-          treeDataProvider: myTreeDataProvider,
+          treeDataProvider: feedbackTreeDataProvider,
         })
       )
       // commands
       this._register(
         vscode.commands.registerCommand('devboxDashboard.refresh', () => {
-          myTreeDataProvider.refresh()
+          projectTreeDataProvider.refresh()
         })
       )
       this._register(
         vscode.commands.registerCommand(
           'devboxDashboard.createDevbox',
           (item: MyTreeItem) => {
-            myTreeDataProvider.create(item)
+            projectTreeDataProvider.create(item)
           }
         )
       )
@@ -38,7 +41,7 @@ export class TreeView extends Disposable {
         vscode.commands.registerCommand(
           'devboxDashboard.openDevbox',
           (item: MyTreeItem) => {
-            myTreeDataProvider.open(item)
+            projectTreeDataProvider.open(item)
           }
         )
       )
@@ -46,7 +49,7 @@ export class TreeView extends Disposable {
         vscode.commands.registerCommand(
           'devboxDashboard.deleteDevbox',
           (item: MyTreeItem) => {
-            myTreeDataProvider.delete(item)
+            projectTreeDataProvider.delete(item)
           }
         )
       )
@@ -61,11 +64,25 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     this._onDidChangeTreeData.event
   private treeData: DevboxListItem[] = []
 
-  constructor() {
-    getDevboxList().then((data) => {
-      this.treeData = data
+  constructor(treeName: string) {
+    if (treeName === 'devboxDashboard') {
+      const defaultSSHConfigPath = path.resolve(os.homedir(), '.ssh/config')
+
+      parseSSHConfig(defaultSSHConfigPath).then((data) => {
+        console.log(data)
+        this.treeData = data as DevboxListItem[]
+        this._onDidChangeTreeData.fire(undefined)
+      })
+    } else if (treeName === 'devboxFeedback') {
+      this.treeData = [
+        {
+          hostName: 'Give me a feedback in the GitHub repository',
+          host: '',
+          port: 0,
+        },
+      ]
       this._onDidChangeTreeData.fire(undefined)
-    })
+    }
   }
 
   refresh(): void {
@@ -81,8 +98,11 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     vscode.window.showInformationMessage('create')
   }
 
-  open(item: MyTreeItem) {
-    vscode.window.showInformationMessage('open' + item.label)
+  async open(item: MyTreeItem) {
+    console.log(item)
+    await vscode.commands.executeCommand('opensshremotes.openEmptyWindow', {
+      host: `${item.sshDomain}:${item.sshPort}`,
+    })
   }
 
   delete(item: MyTreeItem) {
@@ -93,13 +113,14 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
     if (element) {
       return Promise.resolve([])
     }
-    // get data from server
     const treeNodes = this.treeData.map((item) => {
       const treeItem = new MyTreeItem(
-        item.name,
+        item.host,
+        item.host,
+        item.port,
         vscode.TreeItemCollapsibleState.None
       )
-      treeItem.tooltip = item.name
+      treeItem.tooltip = item.hostName
       return treeItem
     })
 
@@ -108,15 +129,22 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
 }
 
 class MyTreeItem extends vscode.TreeItem {
+  sshDomain: string
+  sshPort: number
+
   constructor(
     label: string,
+    sshDomain: string,
+    sshPort: number,
     collapsibleState: vscode.TreeItemCollapsibleState
   ) {
     super(label, collapsibleState)
+    this.sshDomain = sshDomain
+    this.sshPort = sshPort
 
     this.command = {
-      command: 'yourExtension.showDetails',
-      title: 'Show Details',
+      command: 'devboxDashboard.openDevbox',
+      title: 'open Devbox',
       arguments: [this],
     }
 

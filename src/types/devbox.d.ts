@@ -1,4 +1,8 @@
 export interface DevboxListItem {
-  name: string
-  status: string
+  hostName: string
+  host: string
+  user?: string
+  port: number
+  identityFile?: string
+  status?: string
 }
