@@ -63,15 +63,12 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
 
   constructor() {
     getDevboxList().then((data) => {
-      console.log('data', data)
       this.treeData = data
       this._onDidChangeTreeData.fire(undefined)
     })
   }
 
   refresh(): void {
-    vscode.window.showInformationMessage('refresh')
-
     this._onDidChangeTreeData.fire(undefined)
   }
 

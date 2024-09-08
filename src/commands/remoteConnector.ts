@@ -99,6 +99,9 @@ Host ${sshHost}
     const sshConfigPath = this.getSSHConfigPath()
 
     try {
+      if (!fs.existsSync(sshConfigPath)) {
+        fs.writeFileSync(sshConfigPath, '', 'utf8')
+      }
       const existingConfig = fs.readFileSync(sshConfigPath, 'utf8')
       const lines = existingConfig.split('\n')
       let hostExists = false
