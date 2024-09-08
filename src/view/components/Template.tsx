@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Box, Grid, Text, Button } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
 
-import Info from './Info'
 import MyIcon from './MyIcon'
 import { templates } from '../constants/template'
 
@@ -11,16 +11,9 @@ export interface TemplateItem {
 }
 
 const Template = () => {
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(
-    null
-  )
-
+  const navigate = useNavigate()
   const handleUseTemplate = ({ name, title }: TemplateItem) => {
-    setSelectedTemplate({ name, title })
-  }
-
-  if (selectedTemplate) {
-    return <Info {...selectedTemplate} />
+    navigate('/info', { state: { name, title } })
   }
 
   return (
@@ -70,6 +63,8 @@ const TemplateCard = ({
       bg={'#F3F3F3'}
       _hover={{ bg: '#E3E3E3' }}
       display={'flex'}
+      alignItems={'center'}
+      justifyContent={'space-between'}
       onClick={() => onUse({ name: item.name, title: item.title })}>
       <Box w={'60px'} display={'flex'} alignItems={'center'}>
         <MyIcon name={item.name} />
@@ -83,7 +78,8 @@ const TemplateCard = ({
         </Text>
       </Box>
       <Button
-        mt={4}
+        ml={10}
+        width={'60px'}
         colorScheme="blue"
         visibility={isHovered ? 'visible' : 'hidden'}
         onClick={() => onUse({ name: item.name, title: item.title })}>

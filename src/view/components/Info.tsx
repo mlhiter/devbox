@@ -1,6 +1,18 @@
 import { useState } from 'react'
+import {
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  Text,
+  InputGroup,
+  InputLeftAddon,
+} from '@chakra-ui/react'
+import { useNavigate, useLocation } from 'react-router-dom'
+
 import MyIcon from './MyIcon'
-import { TemplateItem } from './Template'
 
 interface NetworkItem {
   port: number
@@ -10,7 +22,10 @@ interface NetworkItem {
   customDomain: string
 }
 
-const Info = (template: TemplateItem) => {
+const Info = () => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const template = location.state || { name: 'go', title: 'Go' }
   const [projectName, setProjectName] = useState('')
   const [networks, setNetworks] = useState<NetworkItem[]>([
     {
@@ -24,161 +39,90 @@ const Info = (template: TemplateItem) => {
   const [githubRepo, setGithubRepo] = useState('')
   const [projectDescription, setProjectDescription] = useState('')
 
-  const addNetwork = () => {
-    setNetworks([
-      ...networks,
-      {
-        port: 80,
-        remoteAccess: true,
-        protocol: 'https',
-        publicDomain: 'hello.cloud.xxx.io',
-        customDomain: '',
-      },
-    ])
-  }
-
-  const removeNetwork = (index: number) => {
-    const newNetworks = networks.filter((_, i) => i !== index)
-    setNetworks(newNetworks)
-  }
-
-  const handleNetworkChange = (
-    index: number,
-    field: string,
-    value: boolean | string
-  ) => {
-    const newNetworks = networks.map((n, i) =>
-      i === index ? { ...n, [field]: value } : n
-    )
-    setNetworks(newNetworks)
-  }
-
   const handleSubmit = () => {
     console.log({ projectName, networks, githubRepo, projectDescription })
   }
 
   return (
-    <div className="container">
-      <div className="navbar">
-        <div className="top-left-container">
+    <Box p={5}>
+      {/* navbar */}
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box
+          display="flex"
+          alignItems="center"
+          onClick={() => navigate('/')}
+          cursor={'pointer'}>
           <MyIcon name="arrowLeft" />
-          <div>Choose Template</div>
-        </div>
-        <button className="create-button" onClick={handleSubmit}>
+          <Text>Choose Template</Text>
+        </Box>
+        <Button colorScheme="blue" onClick={handleSubmit}>
           Create
-        </button>
-      </div>
-
-      <div className="form-section">
-        <div className="template">
-          <label className="required-label">Template</label>
-          <div className="template-info">
-            <div>
+        </Button>
+      </Box>
+      {/* form body */}
+      <Box mt={5}>
+        {/* template */}
+        <FormControl isRequired mb={4}>
+          <FormLabel>Template</FormLabel>
+          <Box
+            p={4}
+            display="flex"
+            flexDirection={'column'}
+            alignItems="center"
+            width={'full'}
+            bg={'#F3F3F3'}>
+            <Box w={'60px'} display={'flex'} alignItems={'center'}>
               <MyIcon name={template.name} />
-              {template.title}
-            </div>
-            <p>Quick Start a {template.title} Project</p>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label className="required-label">Project Name</label>
-          <input
-            type="text"
+              <Text ml={2} fontSize={'l'} fontWeight={'500'}>
+                {template.title}
+              </Text>
+            </Box>
+            <Text fontSize="sm" color={'#616161'} mt={2}>
+              Quick Start a {template.title} Project
+            </Text>
+          </Box>
+        </FormControl>
+        {/* project name */}
+        <FormControl isRequired mb={4}>
+          <FormLabel>Project Name</FormLabel>
+          <Input
+            border={'none'}
+            bg={'#F3F3F3'}
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
             placeholder="Please input project name"
           />
-        </div>
+        </FormControl>
 
-        <div className="required-label">Network Configuration</div>
-        {networks.map((networkConfig, index) => (
-          <div className="network-config" key={index}>
-            <div className="network-row">
-              <div className="form-group">
-                <label>Port</label>
-                <input
-                  type="number"
-                  value={networkConfig.port}
-                  onChange={(e) =>
-                    handleNetworkChange(index, 'port', e.target.value)
-                  }
-                />
-              </div>
-              <div className="form-group">
-                <label>Remote Access</label>
-                <div className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    id={`remoteAccess-${index}`}
-                    checked={networkConfig.remoteAccess}
-                    onChange={(e) =>
-                      handleNetworkChange(
-                        index,
-                        'remoteAccess',
-                        e.target.checked
-                      )
-                    }
-                  />
-                  <label
-                    htmlFor={`remoteAccess-${index}`}
-                    className="switch"></label>
-                </div>
-              </div>
-            </div>
-            <div className="network-row">
-              <div className="domain-input">
-                <select
-                  value={networkConfig.protocol}
-                  onChange={(e) =>
-                    handleNetworkChange(index, 'protocol', e.target.value)
-                  }>
-                  <option value="https">https://</option>
-                  <option value="grpcs">grpcs://</option>
-                  <option value="wss">wss://</option>
-                </select>
-                <input
-                  type="text"
-                  value={networkConfig.publicDomain}
-                  onChange={(e) =>
-                    handleNetworkChange(index, 'publicDomain', e.target.value)
-                  }
-                />
-              </div>
-              <span className="custom-domain">自定义域名</span>
-              <button
-                className="delete-button"
-                onClick={() => removeNetwork(index)}>
-                <MyIcon name="delete" />
-              </button>
-            </div>
-          </div>
-        ))}
-        <button className="add-network-button" onClick={addNetwork}>
-          <MyIcon name="add" />
-          添加网络
-        </button>
+        <FormControl mt={4}>
+          <FormLabel>Github Repo</FormLabel>
+          <InputGroup bg={'#F3F3F3'}>
+            <InputLeftAddon bg={'#F3F3F3'} border={'none'}>
+              <MyIcon name="attach" />
+            </InputLeftAddon>
+            <Input
+              border={'none'}
+              type="text"
+              value={githubRepo}
+              onChange={(e) => setGithubRepo(e.target.value)}
+              placeholder="Github Repository"
+            />
+          </InputGroup>
+        </FormControl>
 
-        <div className="form-group">
-          <label>Github 仓库</label>
-          <input
-            type="text"
-            value={githubRepo}
-            onChange={(e) => setGithubRepo(e.target.value)}
-            placeholder="Github 仓库"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>项目描述</label>
-          <textarea
+        <FormControl mt={4}>
+          <FormLabel>Project Description</FormLabel>
+          <Textarea
+            bg={'#F3F3F3'}
+            border={'none'}
+            height={'200px'}
             value={projectDescription}
             onChange={(e) => setProjectDescription(e.target.value)}
-            placeholder="这个项目是做什么的?"
+            placeholder="What does this project do?"
           />
-        </div>
-      </div>
-    </div>
+        </FormControl>
+      </Box>
+    </Box>
   )
 }
 
