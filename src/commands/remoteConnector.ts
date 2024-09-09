@@ -7,7 +7,7 @@ import { untildify } from '../common/files'
 import { execSync } from 'child_process'
 
 const defaultSSHConfigPath = path.resolve(os.homedir(), '.ssh/config')
-const defaultSSHKeyPath = path.resolve(os.homedir(), '.ssh/sealos_ecdsa')
+const defaultSSHKeyPath = path.resolve(os.homedir(), '.ssh')
 
 export class RemoteSSHConnector extends Disposable {
   constructor(context: vscode.ExtensionContext) {
@@ -71,16 +71,40 @@ export class RemoteSSHConnector extends Disposable {
 
     return true
   }
+  private async modifiedRemoteSSHConfig(sshHostLabel: string) {
+    const existingSSHHostPlatforms = vscode.workspace
+      .getConfiguration('remote.SSH')
+      .get<{ [host: string]: string }>('remotePlatform', {})
+    await vscode.workspace
+      .getConfiguration('remote.SSH')
+      .update(
+        'remotePlatform',
+        { ...existingSSHHostPlatforms, [sshHostLabel]: 'linux' },
+        vscode.ConfigurationTarget.Global
+      )
+    await vscode.workspace
+      .getConfiguration('remote.SSH')
+      .update('localServerDownload', 'off', vscode.ConfigurationTarget.Global)
+  }
 
   private async connectRemoteSSH(args: {
     sshDomain: string
     sshPort: string
     base64PrivateKey: string
+    sshHostLabel: string
   }) {
     this.ensureRemoteSSHExtInstalled()
-    const { sshDomain, sshPort, base64PrivateKey } = args
+
+    const { sshDomain, sshPort, base64PrivateKey, sshHostLabel } = args
+
+    this.modifiedRemoteSSHConfig(sshHostLabel)
+
     const sshUser = sshDomain.split('@')[0]
     const sshHost = sshDomain.split('@')[1]
+
+    // sshHostLabel: usw.sailos.io/ns-admin/devbox-1
+    // identityFileSSHLabel: usw.sailos.io_ns-admin_devbox-1
+    const identityFileSSHLabel = sshHostLabel.replace(/\//g, '_')
 
     const normalPrivateKey = Buffer.from(base64PrivateKey, 'base64')
 
@@ -90,11 +114,11 @@ export class RemoteSSHConnector extends Disposable {
 
     // 把ssh配置信息写入.ssh / config
     const sshConfig = `
-Host ${sshHost}
+Host ${sshHostLabel}
   HostName ${sshHost}
   User ${sshUser}
   Port ${sshPort}
-  IdentityFile ~/.ssh/sealos_ecdsa_${sshPort}`
+  IdentityFile ~/.ssh/${identityFileSSHLabel}`
 
     const sshConfigPath = this.getSSHConfigPath()
 
@@ -102,27 +126,18 @@ Host ${sshHost}
       if (!fs.existsSync(sshConfigPath)) {
         fs.writeFileSync(sshConfigPath, '', 'utf8')
       }
+      // 判重
       const existingConfig = fs.readFileSync(sshConfigPath, 'utf8')
       const lines = existingConfig.split('\n')
       let hostExists = false
-      let hostConfig = ''
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim()
         if (line.startsWith('Host ')) {
           const currentHost = line.split(' ')[1]
-          if (currentHost === sshHost) {
-            console.log('currentHost:', currentHost)
-            hostConfig = ''
-            for (let j = i; j < lines.length; j++) {
-              console.log('lines[j]:', lines[j])
-              hostConfig += lines[j].trim() + '\n'
-            }
-            console.log('hostConfig:', hostConfig)
-            if (hostConfig.includes(`Port ${sshPort}`)) {
-              hostExists = true
-              break
-            }
+          if (currentHost === sshHostLabel) {
+            hostExists = true
+            break
           }
         }
       }
@@ -145,8 +160,8 @@ Host ${sshHost}
 
     // 把ssh私钥写入.ssh
     try {
-      const sshKeyPath = defaultSSHKeyPath + `_${sshPort}`
-      console.log(normalPrivateKey)
+      const sshKeyPath = defaultSSHKeyPath + `/${identityFileSSHLabel}`
+      console.log('sshKeyPath:', sshKeyPath)
       fs.writeFileSync(sshKeyPath, normalPrivateKey)
 
       // 针对mac和windows区别处理
@@ -169,7 +184,7 @@ Host ${sshHost}
 
     // 创建一个新的连接并打开新的窗口
     await vscode.commands.executeCommand('opensshremotes.openEmptyWindow', {
-      host: `${sshDomain}:${sshPort}`,
+      host: `${sshHostLabel}`,
     })
   }
 }
