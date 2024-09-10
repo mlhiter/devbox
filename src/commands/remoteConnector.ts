@@ -138,10 +138,11 @@ Host ${suffixSSHHostLabel}
       // ensure .ssh/config includes .ssh/sealos/devbox_config
       const existingSSHConfig = fs.readFileSync(defaultSSHConfigPath, 'utf8')
       if (!existingSSHConfig.includes('Include ~/.ssh/sealos/devbox_config')) {
-        fs.appendFileSync(
-          defaultSSHConfigPath,
-          '\nInclude ~/.ssh/sealos/devbox_config\n'
-        )
+        let existingSSHConfig = fs.readFileSync(defaultSSHConfigPath, 'utf-8')
+        const newConfig =
+          'Include ~/.ssh/sealos/devbox_config\n' + existingSSHConfig
+        // 写入文件
+        fs.writeFileSync(defaultSSHConfigPath, newConfig)
       }
 
       // write ssh_config to .ssh/sealos/devbox_config
