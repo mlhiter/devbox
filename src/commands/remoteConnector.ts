@@ -75,13 +75,13 @@ export class RemoteSSHConnector extends Disposable {
     const existingSSHHostPlatforms = vscode.workspace
       .getConfiguration('remote.SSH')
       .get<{ [host: string]: string }>('remotePlatform', {})
-    await vscode.workspace
-      .getConfiguration('remote.SSH')
-      .update(
-        'remotePlatform',
-        { ...existingSSHHostPlatforms, [sshHostLabel]: 'linux' },
-        vscode.ConfigurationTarget.Global
-      )
+    // await vscode.workspace
+    //   .getConfiguration('remote.SSH')
+    //   .update(
+    //     'remotePlatform',
+    //     { ...existingSSHHostPlatforms, [sshHostLabel]: 'linux' },
+    //     vscode.ConfigurationTarget.Global
+    //   )
     await vscode.workspace
       .getConfiguration('remote.SSH')
       .update('useExecServer', false, vscode.ConfigurationTarget.Global)
@@ -100,7 +100,10 @@ export class RemoteSSHConnector extends Disposable {
 
     const { sshDomain, sshPort, base64PrivateKey, sshHostLabel } = args
 
-    this.modifiedRemoteSSHConfig(sshHostLabel)
+    const randomSuffix = Math.random().toString(36).substring(2, 15)
+    const suffixSSHHostLabel = `${sshHostLabel}/${randomSuffix}`
+
+    this.modifiedRemoteSSHConfig(suffixSSHHostLabel)
 
     const sshUser = sshDomain.split('@')[0]
     const sshHost = sshDomain.split('@')[1]
@@ -117,7 +120,7 @@ export class RemoteSSHConnector extends Disposable {
 
     // 把ssh配置信息写入.ssh / config
     const sshConfig = `
-Host ${sshHostLabel}
+Host ${suffixSSHHostLabel}
   HostName ${sshHost}
   User ${sshUser}
   Port ${sshPort}
@@ -138,7 +141,7 @@ Host ${sshHostLabel}
         const line = lines[i].trim()
         if (line.startsWith('Host ')) {
           const currentHost = line.split(' ')[1]
-          if (currentHost === sshHostLabel) {
+          if (currentHost === suffixSSHHostLabel) {
             hostExists = true
             break
           }
@@ -187,7 +190,7 @@ Host ${sshHostLabel}
 
     // 创建一个新的连接并打开新的窗口
     await vscode.commands.executeCommand('opensshremotes.openEmptyWindow', {
-      host: `${sshHostLabel}`,
+      host: `${suffixSSHHostLabel}`,
     })
   }
 }
