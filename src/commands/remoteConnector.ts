@@ -3,9 +3,12 @@ import * as os from 'os'
 import * as fs from 'fs'
 import * as vscode from 'vscode'
 import { Disposable } from '../common/dispose'
-import { untildify } from '../common/files'
 import { execSync } from 'child_process'
 
+const defaultDevboxSSHConfigPath = path.resolve(
+  os.homedir(),
+  '.ssh/sealos/devbox_config'
+)
 const defaultSSHConfigPath = path.resolve(os.homedir(), '.ssh/config')
 const defaultSSHKeyPath = path.resolve(os.homedir(), '.ssh')
 
@@ -19,12 +22,6 @@ export class RemoteSSHConnector extends Disposable {
         )
       )
     }
-  }
-  private getSSHConfigPath() {
-    const sshConfigPath = vscode.workspace
-      .getConfiguration('remote.SSH')
-      .get<string>('configFile')
-    return sshConfigPath ? untildify(sshConfigPath) : defaultSSHConfigPath
   }
 
   private async ensureRemoteSSHExtInstalled(): Promise<boolean> {
@@ -75,13 +72,14 @@ export class RemoteSSHConnector extends Disposable {
     const existingSSHHostPlatforms = vscode.workspace
       .getConfiguration('remote.SSH')
       .get<{ [host: string]: string }>('remotePlatform', {})
-    // await vscode.workspace
-    //   .getConfiguration('remote.SSH')
-    //   .update(
-    //     'remotePlatform',
-    //     { ...existingSSHHostPlatforms, [sshHostLabel]: 'linux' },
-    //     vscode.ConfigurationTarget.Global
-    //   )
+
+    await vscode.workspace
+      .getConfiguration('remote.SSH')
+      .update(
+        'remotePlatform',
+        { ...existingSSHHostPlatforms, [sshHostLabel]: 'linux' },
+        vscode.ConfigurationTarget.Global
+      )
     await vscode.workspace
       .getConfiguration('remote.SSH')
       .update('useExecServer', false, vscode.ConfigurationTarget.Global)
@@ -118,25 +116,40 @@ export class RemoteSSHConnector extends Disposable {
       `sshCommand:ssh ${sshDomain} -p ${sshPort};`
     )
 
-    // 把ssh配置信息写入.ssh / config
     const sshConfig = `
 Host ${suffixSSHHostLabel}
   HostName ${sshHost}
   User ${sshUser}
   Port ${sshPort}
-  IdentityFile ~/.ssh/${identityFileSSHLabel}`
-
-    const sshConfigPath = this.getSSHConfigPath()
+  IdentityFile ~/.ssh/sealos/${identityFileSSHLabel}`
 
     try {
-      if (!fs.existsSync(sshConfigPath)) {
-        fs.writeFileSync(sshConfigPath, '', 'utf8')
+      // ensure .ssh/config exists
+      if (!fs.existsSync(defaultSSHConfigPath)) {
+        fs.writeFileSync(defaultSSHConfigPath, '', 'utf8')
       }
-      // 判重
-      const existingConfig = fs.readFileSync(sshConfigPath, 'utf8')
+      // ensure .ssh/sealos/devbox_config exists
+      if (!fs.existsSync(defaultDevboxSSHConfigPath)) {
+        fs.mkdirSync(path.resolve(os.homedir(), '.ssh/sealos'), {
+          recursive: true,
+        })
+        fs.writeFileSync(defaultDevboxSSHConfigPath, '', 'utf8')
+      }
+      // ensure .ssh/config includes .ssh/sealos/devbox_config
+      const existingSSHConfig = fs.readFileSync(defaultSSHConfigPath, 'utf8')
+      if (!existingSSHConfig.includes('Include ~/.ssh/sealos/devbox_config')) {
+        fs.appendFileSync(
+          defaultSSHConfigPath,
+          '\nInclude ~/.ssh/sealos/devbox_config\n'
+        )
+      }
+
+      // write ssh_config to .ssh/sealos/devbox_config
+      const existingConfig = fs.readFileSync(defaultDevboxSSHConfigPath, 'utf8')
       const lines = existingConfig.split('\n')
       let hostExists = false
 
+      // check if the host already exists
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i].trim()
         if (line.startsWith('Host ')) {
@@ -153,7 +166,7 @@ Host ${suffixSSHHostLabel}
           `SSH configuration for ${sshHost} with port ${sshPort} already exists.`
         )
       } else {
-        fs.appendFileSync(sshConfigPath, sshConfig)
+        fs.appendFileSync(defaultDevboxSSHConfigPath, sshConfig)
         vscode.window.showInformationMessage(
           `SSH configuration for ${sshHost} with port ${sshPort} has been added.`
         )
@@ -164,10 +177,9 @@ Host ${suffixSSHHostLabel}
       )
     }
 
-    // 把ssh私钥写入.ssh
+    // create sealos privateKey file in .ssh/sealos
     try {
-      const sshKeyPath = defaultSSHKeyPath + `/${identityFileSSHLabel}`
-      console.log('sshKeyPath:', sshKeyPath)
+      const sshKeyPath = defaultSSHKeyPath + `/sealos/${identityFileSSHLabel}`
       fs.writeFileSync(sshKeyPath, normalPrivateKey)
 
       // 针对mac和windows区别处理
