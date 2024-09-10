@@ -84,6 +84,9 @@ export class RemoteSSHConnector extends Disposable {
       )
     await vscode.workspace
       .getConfiguration('remote.SSH')
+      .update('useExecServer', false, vscode.ConfigurationTarget.Global)
+    await vscode.workspace
+      .getConfiguration('remote.SSH')
       .update('localServerDownload', 'off', vscode.ConfigurationTarget.Global)
   }
 
