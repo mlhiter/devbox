@@ -3,7 +3,7 @@ import * as os from 'os'
 import * as vscode from 'vscode'
 
 import { Disposable } from '../common/dispose'
-import { getDevboxList, parseSSHConfig } from '../api'
+import { parseSSHConfig } from '../api'
 import { DevboxListItem } from '../types/devbox'
 
 export class TreeView extends Disposable {

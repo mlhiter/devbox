@@ -121,7 +121,8 @@ Host ${suffixSSHHostLabel}
   HostName ${sshHost}
   User ${sshUser}
   Port ${sshPort}
-  IdentityFile ~/.ssh/sealos/${identityFileSSHLabel}`
+  IdentityFile ~/.ssh/sealos/${identityFileSSHLabel}
+  IdentitiesOnly yes`
 
     try {
       // ensure .ssh/config exists
@@ -144,6 +145,12 @@ Host ${suffixSSHHostLabel}
         // 写入文件
         fs.writeFileSync(defaultSSHConfigPath, newConfig)
       }
+
+      // ensure .ssh/sealos/devbox_config do not have the same domain/namespace/devboxName, if exists, remove it
+      const existingDevboxConfig = fs.readFileSync(
+        defaultDevboxSSHConfigPath,
+        'utf8'
+      )
 
       // write ssh_config to .ssh/sealos/devbox_config
       const existingConfig = fs.readFileSync(defaultDevboxSSHConfigPath, 'utf8')
