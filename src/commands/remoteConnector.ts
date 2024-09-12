@@ -122,7 +122,8 @@ Host ${suffixSSHHostLabel}
   User ${sshUser}
   Port ${sshPort}
   IdentityFile ~/.ssh/sealos/${identityFileSSHLabel}
-  IdentitiesOnly yes`
+  IdentitiesOnly yes
+  StrictHostKeyChecking no`
 
     try {
       // ensure .ssh/config exists
