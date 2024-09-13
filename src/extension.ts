@@ -41,6 +41,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const sshDomain = queryParams.get('sshDomain')
     const sshPort = queryParams.get('sshPort')
     const base64PrivateKey = queryParams.get('base64PrivateKey')
+    const workingDir = queryParams.get('workingDir')
     const sshHostLabel = queryParams.get('sshHostLabel')
     if (sshPort === '0') {
       vscode.window.showInformationMessage(
@@ -56,6 +57,7 @@ export async function activate(context: vscode.ExtensionContext) {
           sshPort,
           base64PrivateKey,
           sshHostLabel,
+          workingDir,
         })
       }
     }

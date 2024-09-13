@@ -93,10 +93,12 @@ export class RemoteSSHConnector extends Disposable {
     sshPort: string
     base64PrivateKey: string
     sshHostLabel: string
+    workingDir: string
   }) {
     this.ensureRemoteSSHExtInstalled()
 
-    const { sshDomain, sshPort, base64PrivateKey, sshHostLabel } = args
+    const { sshDomain, sshPort, base64PrivateKey, sshHostLabel, workingDir } =
+      args
 
     const randomSuffix = Math.random().toString(36).substring(2, 15)
     const newSshHostLabel = sshHostLabel.replace(/\//g, '-')
@@ -218,7 +220,7 @@ Host ${suffixSSHHostLabel}
     vscode.commands.executeCommand(
       'vscode.openFolder',
       vscode.Uri.parse(
-        `vscode-remote://ssh-remote+${suffixSSHHostLabel}/home/sealos/project`
+        `vscode-remote://ssh-remote+${suffixSSHHostLabel}${workingDir}`
       )
     )
   }
