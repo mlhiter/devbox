@@ -99,7 +99,8 @@ export class RemoteSSHConnector extends Disposable {
     const { sshDomain, sshPort, base64PrivateKey, sshHostLabel } = args
 
     const randomSuffix = Math.random().toString(36).substring(2, 15)
-    const suffixSSHHostLabel = `${sshHostLabel}/${randomSuffix}`
+    const newSshHostLabel = sshHostLabel.replace(/\//g, '-')
+    const suffixSSHHostLabel = `${newSshHostLabel}-${randomSuffix}`
 
     this.modifiedRemoteSSHConfig(suffixSSHHostLabel)
 
@@ -209,9 +210,16 @@ Host ${suffixSSHHostLabel}
       )
     }
 
+    console.log(
+      `vscode-remote://ssh-remote+${suffixSSHHostLabel}/home/sealos/project`
+    )
+
     // 创建一个新的连接并打开新的窗口
-    await vscode.commands.executeCommand('opensshremotes.openEmptyWindow', {
-      host: `${suffixSSHHostLabel}`,
-    })
+    vscode.commands.executeCommand(
+      'vscode.openFolder',
+      vscode.Uri.parse(
+        `vscode-remote://ssh-remote+${suffixSSHHostLabel}/home/sealos/project`
+      )
+    )
   }
 }
