@@ -1,25 +1,10 @@
-import * as os from 'os'
 import * as vscode from 'vscode'
 
-import Logger from './common/logger'
 import { Webview } from './commands/webview'
 import { RemoteSSHConnector } from './commands/remoteConnector'
 import { TreeView } from './commands/treeview'
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "devbox" is now active!')
-
-  const extensionId = context.extension.id
-  const packageJSON = context.extension.packageJSON
-  const logger = new Logger('Devbox')
-  logger.info(
-    `${extensionId}/${
-      packageJSON.version
-    } (${os.release()} ${os.platform()} ${os.arch()}) vscode/${
-      vscode.version
-    } (${vscode.env.appName})`
-  )
-
   // webview
   const webview = new Webview(context)
   context.subscriptions.push(webview)
@@ -33,25 +18,39 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(treeView)
 
   const handleUri = (uri: vscode.Uri) => {
-    logger.trace('Handling Uri...', uri.toString())
-    if (uri.scheme !== 'vscode') {
+    console.log('uri', uri)
+
+    if (
+      uri.scheme !== 'vscode' &&
+      uri.scheme !== 'cursor' &&
+      uri.scheme !== 'vscode-insiders'
+    ) {
       return
     }
+
     const queryParams = new URLSearchParams(uri.query)
+
     const sshDomain = queryParams.get('sshDomain')
     const sshPort = queryParams.get('sshPort')
     const base64PrivateKey = queryParams.get('base64PrivateKey')
     const workingDir = queryParams.get('workingDir')
     const sshHostLabel = queryParams.get('sshHostLabel')
+
     if (sshPort === '0') {
       vscode.window.showInformationMessage(
-        'SSH Port is not correct,please try again'
+        `SSH Port is not correct,maybe your devbox's nodeport is over the limit`
       )
       return
     }
 
     {
-      if (sshDomain && sshPort && base64PrivateKey && sshHostLabel) {
+      if (
+        sshDomain &&
+        sshPort &&
+        base64PrivateKey &&
+        sshHostLabel &&
+        workingDir
+      ) {
         vscode.commands.executeCommand('devbox.connectRemoteSSH', {
           sshDomain,
           sshPort,

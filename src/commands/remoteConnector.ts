@@ -2,15 +2,17 @@ import path from 'path'
 import * as os from 'os'
 import * as fs from 'fs'
 import * as vscode from 'vscode'
+import SSHConfig from 'ssh-config'
 import { Disposable } from '../common/dispose'
 import { execSync } from 'child_process'
+import { modifiedRemoteSSHConfig } from '../utils/remoteSSHConfig'
 
+const defaultSSHConfigPath = path.resolve(os.homedir(), '.ssh/config')
 const defaultDevboxSSHConfigPath = path.resolve(
   os.homedir(),
   '.ssh/sealos/devbox_config'
 )
-const defaultSSHConfigPath = path.resolve(os.homedir(), '.ssh/config')
-const defaultSSHKeyPath = path.resolve(os.homedir(), '.ssh')
+const defaultSSHKeyPath = path.resolve(os.homedir(), '.ssh/sealos')
 
 export class RemoteSSHConnector extends Disposable {
   constructor(context: vscode.ExtensionContext) {
@@ -68,25 +70,6 @@ export class RemoteSSHConnector extends Disposable {
 
     return true
   }
-  private async modifiedRemoteSSHConfig(sshHostLabel: string) {
-    const existingSSHHostPlatforms = vscode.workspace
-      .getConfiguration('remote.SSH')
-      .get<{ [host: string]: string }>('remotePlatform', {})
-
-    await vscode.workspace
-      .getConfiguration('remote.SSH')
-      .update(
-        'remotePlatform',
-        { ...existingSSHHostPlatforms, [sshHostLabel]: 'linux' },
-        vscode.ConfigurationTarget.Global
-      )
-    await vscode.workspace
-      .getConfiguration('remote.SSH')
-      .update('useExecServer', false, vscode.ConfigurationTarget.Global)
-    await vscode.workspace
-      .getConfiguration('remote.SSH')
-      .update('localServerDownload', 'off', vscode.ConfigurationTarget.Global)
-  }
 
   private async connectRemoteSSH(args: {
     sshDomain: string
@@ -104,7 +87,7 @@ export class RemoteSSHConnector extends Disposable {
     const newSshHostLabel = sshHostLabel.replace(/\//g, '-')
     const suffixSSHHostLabel = `${newSshHostLabel}-${randomSuffix}`
 
-    this.modifiedRemoteSSHConfig(suffixSSHHostLabel)
+    modifiedRemoteSSHConfig(newSshHostLabel, suffixSSHHostLabel)
 
     const sshUser = sshDomain.split('@')[0]
     const sshHost = sshDomain.split('@')[1]
@@ -115,74 +98,63 @@ export class RemoteSSHConnector extends Disposable {
 
     const normalPrivateKey = Buffer.from(base64PrivateKey, 'base64')
 
-    vscode.window.showInformationMessage(
-      `sshCommand:ssh ${sshDomain} -p ${sshPort};`
-    )
-
-    const sshConfig = `
-Host ${suffixSSHHostLabel}
-  HostName ${sshHost}
-  User ${sshUser}
-  Port ${sshPort}
-  IdentityFile ~/.ssh/sealos/${identityFileSSHLabel}
-  IdentitiesOnly yes
-  StrictHostKeyChecking no`
+    const sshConfig = new SSHConfig().append({
+      Host: suffixSSHHostLabel,
+      HostName: sshHost,
+      User: sshUser,
+      Port: sshPort,
+      IdentityFile: `~/.ssh/sealos/${identityFileSSHLabel}`,
+      IdentitiesOnly: 'yes',
+      StrictHostKeyChecking: 'no',
+    })
+    const sshConfigString = SSHConfig.stringify(sshConfig)
 
     try {
-      // ensure .ssh/config exists
+      // 1. ensure .ssh/config exists
       if (!fs.existsSync(defaultSSHConfigPath)) {
         fs.writeFileSync(defaultSSHConfigPath, '', 'utf8')
       }
-      // ensure .ssh/sealos/devbox_config exists
+      // 2. ensure .ssh/sealos/devbox_config exists
       if (!fs.existsSync(defaultDevboxSSHConfigPath)) {
         fs.mkdirSync(path.resolve(os.homedir(), '.ssh/sealos'), {
           recursive: true,
         })
         fs.writeFileSync(defaultDevboxSSHConfigPath, '', 'utf8')
       }
-      // ensure .ssh/config includes .ssh/sealos/devbox_config
+      // 3. ensure .ssh/config includes .ssh/sealos/devbox_config
       const existingSSHConfig = fs.readFileSync(defaultSSHConfigPath, 'utf8')
       if (!existingSSHConfig.includes('Include ~/.ssh/sealos/devbox_config')) {
         let existingSSHConfig = fs.readFileSync(defaultSSHConfigPath, 'utf-8')
         const newConfig =
           'Include ~/.ssh/sealos/devbox_config\n' + existingSSHConfig
-        // 写入文件
         fs.writeFileSync(defaultSSHConfigPath, newConfig)
       }
 
-      // ensure .ssh/sealos/devbox_config do not have the same domain/namespace/devboxName, if exists, remove it
-      const existingDevboxConfig = fs.readFileSync(
+      // 4. ensure .ssh/sealos/devbox_config do not have the same domain/namespace/devboxName, if exists, remove it
+      const existingDevboxConfigString = fs.readFileSync(
         defaultDevboxSSHConfigPath,
         'utf8'
       )
-
-      // write ssh_config to .ssh/sealos/devbox_config
-      const existingConfig = fs.readFileSync(defaultDevboxSSHConfigPath, 'utf8')
-      const lines = existingConfig.split('\n')
-      let hostExists = false
-
-      // check if the host already exists
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim()
-        if (line.startsWith('Host ')) {
-          const currentHost = line.split(' ')[1]
-          if (currentHost === suffixSSHHostLabel) {
-            hostExists = true
-            break
-          }
+      const devboxConfigs = SSHConfig.parse(existingDevboxConfigString)
+      const newDevboxConfigs = devboxConfigs.filter((item) => {
+        if ('param' in item && 'value' in item) {
+          return (
+            item.param !== 'Host' ||
+            (item.param === 'Host' &&
+              typeof item.value === 'string' &&
+              !item.value.startsWith(newSshHostLabel))
+          )
         }
-      }
+        return true
+      })
+      const newDevboxConfigString = SSHConfig.stringify(newDevboxConfigs as any)
+      fs.writeFileSync(defaultDevboxSSHConfigPath, newDevboxConfigString)
 
-      if (hostExists) {
-        vscode.window.showInformationMessage(
-          `SSH configuration for ${sshHost} with port ${sshPort} already exists.`
-        )
-      } else {
-        fs.appendFileSync(defaultDevboxSSHConfigPath, sshConfig)
-        vscode.window.showInformationMessage(
-          `SSH configuration for ${sshHost} with port ${sshPort} has been added.`
-        )
-      }
+      // 5. write new ssh config to .ssh/sealos/devbox_config
+      fs.appendFileSync(defaultDevboxSSHConfigPath, sshConfigString)
+      vscode.window.showInformationMessage(
+        `SSH configuration for ${sshHost} with port ${sshPort} has been added.`
+      )
     } catch (error) {
       vscode.window.showErrorMessage(
         `Failed to write SSH configuration: ${error}`
@@ -191,7 +163,7 @@ Host ${suffixSSHHostLabel}
 
     // create sealos privateKey file in .ssh/sealos
     try {
-      const sshKeyPath = defaultSSHKeyPath + `/sealos/${identityFileSSHLabel}`
+      const sshKeyPath = defaultSSHKeyPath + `/${identityFileSSHLabel}`
       fs.writeFileSync(sshKeyPath, normalPrivateKey)
 
       // 针对mac和windows区别处理
@@ -211,10 +183,6 @@ Host ${suffixSSHHostLabel}
         `Failed to write SSH private key: ${error}`
       )
     }
-
-    console.log(
-      `vscode-remote://ssh-remote+${suffixSSHHostLabel}/home/sealos/project`
-    )
 
     // 创建一个新的连接并打开新的窗口
     vscode.commands.executeCommand(
