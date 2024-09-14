@@ -1,12 +1,5 @@
 const fs = require('fs')
-const path = require('path')
-import { DevboxListItem } from '../types/devbox'
-// import { DELETE, GET, POST } from './axios'
 
-export const getDevboxList = () =>
-  new Promise<DevboxListItem[]>((resolve, reject) => {
-    return resolve([])
-  })
 export const parseSSHConfig = (configFilePath: string) => {
   return new Promise((resolve, reject) => {
     fs.readFile(configFilePath, 'utf-8', (err: any, data: any) => {
@@ -17,11 +10,18 @@ export const parseSSHConfig = (configFilePath: string) => {
       const lines = data.split('\n')
       const devboxList = [] as any[]
       let currentHost = {} as any
+      let lastComment = ''
 
       lines.forEach((line: string) => {
         line = line.trim()
 
-        if (line.startsWith('Host ')) {
+        if (line.startsWith('#')) {
+          // 保存注释，特别是 WorkingDir 注释
+          lastComment = line
+          if (line.startsWith('# WorkingDir:')) {
+            currentHost.remotePath = line.split(':')[1].trim()
+          }
+        } else if (line.startsWith('Host ')) {
           // 如果当前有主机信息且是 usw.sailos.io，则保存
           if (currentHost.hostName === 'usw.sailos.io') {
             devboxList.push(currentHost)
@@ -48,8 +48,3 @@ export const parseSSHConfig = (configFilePath: string) => {
     })
   })
 }
-// export const createDevbox = (payload: { devboxForm: {} }) =>
-//   POST('/api/extension/createDevbox', payload)
-
-// export const deleteDevbox = (payload: { devboxId: string }) =>
-//   DELETE('/api/extension/deleteDevbox', payload)

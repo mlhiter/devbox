@@ -151,6 +151,10 @@ export class RemoteSSHConnector extends Disposable {
       fs.writeFileSync(defaultDevboxSSHConfigPath, newDevboxConfigString)
 
       // 5. write new ssh config to .ssh/sealos/devbox_config
+      fs.appendFileSync(
+        defaultDevboxSSHConfigPath,
+        `\n# WorkingDir: ${workingDir}\n`
+      )
       fs.appendFileSync(defaultDevboxSSHConfigPath, sshConfigString)
       vscode.window.showInformationMessage(
         `SSH configuration for ${sshHost} with port ${sshPort} has been added.`

@@ -2,7 +2,7 @@
   "name": "devbox-sealos",
   "displayName": "devbox",
   "description": "help code for cloud sealos devbox",
-  "version": "0.6.13",
+  "version": "0.7.1",
   "keywords": [
     "devbox",
     "sealos",
@@ -112,11 +112,11 @@
       "view/item/context": [
         {
           "command": "devboxDashboard.deleteDevbox",
-          "when": "view == devboxDashboard"
+          "when": "view == devboxDashboard && viewItem == devbox"
         },
         {
           "command": "devboxDashboard.openDevbox",
-          "when": "view == devboxDashboard",
+          "when": "view == devboxDashboard && viewItem == devbox",
           "group": "inline"
         }
       ]

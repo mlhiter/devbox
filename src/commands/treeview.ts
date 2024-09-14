@@ -2,8 +2,8 @@ import path from 'path'
 import * as os from 'os'
 import * as vscode from 'vscode'
 
-import { Disposable } from '../common/dispose'
 import { parseSSHConfig } from '../api'
+import { Disposable } from '../common/dispose'
 import { DevboxListItem } from '../types/devbox'
 
 export class TreeView extends Disposable {
@@ -63,17 +63,30 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
   readonly onDidChangeTreeData: vscode.Event<MyTreeItem | undefined> =
     this._onDidChangeTreeData.event
   private treeData: DevboxListItem[] = []
+  private treeName: string
 
   constructor(treeName: string) {
-    if (treeName === 'devboxDashboard') {
-      const defaultSSHConfigPath = path.resolve(os.homedir(), '.ssh/config')
+    this.treeName = treeName
+    this.refreshData()
+  }
+
+  refresh(): void {
+    this.refreshData()
+  }
+
+  private refreshData(): void {
+    if (this.treeName === 'devboxDashboard') {
+      const defaultSSHConfigPath = path.resolve(
+        os.homedir(),
+        '.ssh/sealos/devbox_config'
+      )
 
       parseSSHConfig(defaultSSHConfigPath).then((data) => {
         console.log(data)
         this.treeData = data as DevboxListItem[]
         this._onDidChangeTreeData.fire(undefined)
       })
-    } else if (treeName === 'devboxFeedback') {
+    } else if (this.treeName === 'devboxFeedback') {
       this.treeData = [
         {
           hostName: 'Give me a feedback in the GitHub repository',
@@ -83,10 +96,6 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
       ]
       this._onDidChangeTreeData.fire(undefined)
     }
-  }
-
-  refresh(): void {
-    this._onDidChangeTreeData.fire(undefined)
   }
 
   getTreeItem(element: MyTreeItem): vscode.TreeItem {
@@ -99,10 +108,19 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
   }
 
   async open(item: MyTreeItem) {
-    console.log(item)
-    await vscode.commands.executeCommand('opensshremotes.openEmptyWindow', {
-      host: `${item.sshDomain}:${item.sshPort}`,
-    })
+    if (item.contextValue !== 'devbox') {
+      vscode.window.showInformationMessage('只能打开 Devbox 项目')
+      return
+    }
+
+    console.log(item.host)
+
+    vscode.commands.executeCommand(
+      'vscode.openFolder',
+      vscode.Uri.parse(
+        `vscode-remote://ssh-remote+${item.host}${item.remotePath}`
+      )
+    )
   }
 
   delete(item: MyTreeItem) {
@@ -110,44 +128,105 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
   }
 
   getChildren(element?: MyTreeItem): Thenable<MyTreeItem[]> {
-    if (element) {
-      return Promise.resolve([])
-    }
-    const treeNodes = this.treeData.map((item) => {
-      const treeItem = new MyTreeItem(
-        item.host,
-        item.host,
-        item.port,
-        vscode.TreeItemCollapsibleState.None
+    if (!element) {
+      // 第一级：显示所有域名
+      const domains = [
+        ...new Set(this.treeData.map((item) => item.host.split('-')[0])),
+      ]
+      return Promise.resolve(
+        domains.map(
+          (domain) =>
+            new MyTreeItem(
+              domain,
+              domain,
+              0,
+              vscode.TreeItemCollapsibleState.Collapsed
+            )
+        )
       )
-      treeItem.tooltip = item.hostName
-      return treeItem
-    })
-
-    return Promise.resolve(treeNodes)
+    } else if (!element.namespace) {
+      // 第二级：显示指定域名下所有命名空间
+      const namespaces = [
+        ...new Set(
+          this.treeData
+            .filter((item) => item.host.startsWith(element.label as string))
+            .map((item) => {
+              const parts = item.host.split('-')
+              return parts.slice(1, 3).join('-')
+            })
+        ),
+      ]
+      return Promise.resolve(
+        namespaces.map(
+          (namespace) =>
+            new MyTreeItem(
+              namespace,
+              (element.label as string) ?? '',
+              0,
+              vscode.TreeItemCollapsibleState.Collapsed,
+              namespace
+            )
+        )
+      )
+    } else if (!element.devboxName) {
+      // 第三级：显示指定命名空间下的所有 devbox
+      const devboxes = this.treeData.filter((item) => {
+        const parts = item.host.split('-')
+        const domain = parts[0]
+        const namespace = parts.slice(1, 3).join('-')
+        return domain === element.domain && namespace === element.namespace
+      })
+      return Promise.resolve(
+        devboxes.map((devbox) => {
+          const parts = devbox.host.split('-')
+          const devboxName = parts.slice(3, -1).join('-')
+          const treeItem = new MyTreeItem(
+            devboxName,
+            devbox.hostName,
+            devbox.port,
+            vscode.TreeItemCollapsibleState.None,
+            element.namespace,
+            devboxName,
+            devbox.host,
+            devbox.remotePath // 添加这个参数
+          )
+          treeItem.contextValue = 'devbox' // 确保设置了正确的 contextValue
+          return treeItem
+        })
+      )
+    }
+    return Promise.resolve([])
   }
 }
 
 class MyTreeItem extends vscode.TreeItem {
-  sshDomain: string
+  domain: string
+  namespace?: string
+  devboxName?: string
   sshPort: number
+  host: string // 添加这一行
+  remotePath: string
 
   constructor(
     label: string,
-    sshDomain: string,
+    domain: string,
     sshPort: number,
-    collapsibleState: vscode.TreeItemCollapsibleState
+    collapsibleState: vscode.TreeItemCollapsibleState,
+    namespace?: string,
+    devboxName?: string,
+    host?: string,
+    remotePath?: string // 添加这个参数
   ) {
     super(label, collapsibleState)
-    this.sshDomain = sshDomain
+    this.domain = domain
+    this.namespace = namespace
+    this.devboxName = devboxName
     this.sshPort = sshPort
+    this.host = host || '' // 初始化 host 属性
+    this.remotePath = remotePath || '/home/sealos/project' // 设置默认值
+    // ... 其余代码保持不变
 
-    this.command = {
-      command: 'devboxDashboard.openDevbox',
-      title: 'open Devbox',
-      arguments: [this],
-    }
-
-    this.contextValue = 'myTreeItem'
+    // 添加这行代码
+    this.contextValue = devboxName ? 'devbox' : undefined
   }
 }

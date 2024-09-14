@@ -5,4 +5,5 @@ export interface DevboxListItem {
   port: number
   identityFile?: string
   status?: string
+  remotePath?: string
 }
