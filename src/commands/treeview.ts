@@ -119,7 +119,10 @@ class MyTreeDataProvider implements vscode.TreeDataProvider<MyTreeItem> {
       'vscode.openFolder',
       vscode.Uri.parse(
         `vscode-remote://ssh-remote+${item.host}${item.remotePath}`
-      )
+      ),
+      {
+        forceNewWindow: true,
+      }
     )
   }
 

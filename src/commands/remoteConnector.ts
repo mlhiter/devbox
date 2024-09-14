@@ -193,7 +193,10 @@ export class RemoteSSHConnector extends Disposable {
       'vscode.openFolder',
       vscode.Uri.parse(
         `vscode-remote://ssh-remote+${suffixSSHHostLabel}${workingDir}`
-      )
+      ),
+      {
+        forceNewWindow: true,
+      }
     )
   }
 }
