@@ -13,16 +13,23 @@ export class TreeView extends Disposable {
       const projectTreeDataProvider = new MyTreeDataProvider('devboxDashboard')
       const feedbackTreeDataProvider = new MyTreeDataProvider('devboxFeedback')
       // views
-      this._register(
-        vscode.window.createTreeView('devboxDashboard', {
+      const devboxDashboardView = vscode.window.createTreeView(
+        'devboxDashboard',
+        {
           treeDataProvider: projectTreeDataProvider,
-        })
+        }
       )
+      this._register(devboxDashboardView)
+
+      // 添加视图可见性变化事件监听器
       this._register(
-        vscode.window.createTreeView('devboxFeedback', {
-          treeDataProvider: feedbackTreeDataProvider,
+        devboxDashboardView.onDidChangeVisibility(() => {
+          if (devboxDashboardView.visible) {
+            projectTreeDataProvider.refresh()
+          }
         })
       )
+
       // commands
       this._register(
         vscode.commands.registerCommand('devboxDashboard.refresh', () => {
