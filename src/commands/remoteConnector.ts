@@ -136,17 +136,46 @@ export class RemoteSSHConnector extends Disposable {
         'utf8'
       )
       const devboxConfigs = SSHConfig.parse(existingDevboxConfigString)
-      const newDevboxConfigs = devboxConfigs.filter((item) => {
+
+      // 用于存储需要保留的配置项
+      const newDevboxConfigs = []
+      // 用于标记上一个项是否为注释
+      let previousIsComment = false
+
+      for (let i = 0; i < devboxConfigs.length; i++) {
+        const item = devboxConfigs[i]
         if ('param' in item && 'value' in item) {
-          return (
-            item.param !== 'Host' ||
-            (item.param === 'Host' &&
-              typeof item.value === 'string' &&
-              !item.value.startsWith(newSshHostLabel))
-          )
+          if (
+            item.param === 'Host' &&
+            typeof item.value === 'string' &&
+            item.value.startsWith(newSshHostLabel)
+          ) {
+            // 如果当前项是要删除的 Host，跳过它和前面的注释
+            previousIsComment = false
+            continue
+          }
+          // 如果不是要删除的 Host，保留当前项
+          if (previousIsComment) {
+            newDevboxConfigs.push(devboxConfigs[i - 1]) // 添加前面的注释
+          }
+          newDevboxConfigs.push(item)
+          previousIsComment = false
+        } else if (
+          'content' in item &&
+          typeof item.content === 'string' &&
+          item.content.trim().startsWith('#')
+        ) {
+          // 标记当前项为注释
+          previousIsComment = true
+        } else {
+          if (previousIsComment) {
+            newDevboxConfigs.push(devboxConfigs[i - 1]) // 添加前面的注释
+          }
+          newDevboxConfigs.push(item)
+          previousIsComment = false
         }
-        return true
-      })
+      }
+
       const newDevboxConfigString = SSHConfig.stringify(newDevboxConfigs as any)
       fs.writeFileSync(defaultDevboxSSHConfigPath, newDevboxConfigString)
 
