@@ -130,54 +130,47 @@ export class RemoteSSHConnector extends Disposable {
         fs.writeFileSync(defaultSSHConfigPath, newConfig)
       }
 
-      // 4. ensure .ssh/sealos/devbox_config do not have the same domain/namespace/devboxName, if exists, remove it
-      const existingDevboxConfigString = fs.readFileSync(
-        defaultDevboxSSHConfigPath,
-        'utf8'
-      )
-      const devboxConfigs = SSHConfig.parse(existingDevboxConfigString)
+      // 读取现有的 devbox 配置文件
+      const existingDevboxConfigLines = fs
+        .readFileSync(defaultDevboxSSHConfigPath, 'utf8')
+        .split('\n')
 
-      // 用于存储需要保留的配置项
-      const newDevboxConfigs = []
-      // 用于标记上一个项是否为注释
-      let previousIsComment = false
+      // 用于存储需要保留的配置行
+      const newDevboxConfigLines = []
+      let skipLines = false
 
-      for (let i = 0; i < devboxConfigs.length; i++) {
-        const item = devboxConfigs[i]
-        if ('param' in item && 'value' in item) {
-          if (
-            item.param === 'Host' &&
-            typeof item.value === 'string' &&
-            item.value.startsWith(newSshHostLabel)
-          ) {
-            // 如果当前项是要删除的 Host，跳过它和前面的注释
-            previousIsComment = false
-            continue
-          }
-          // 如果不是要删除的 Host，保留当前项
-          if (previousIsComment) {
-            newDevboxConfigs.push(devboxConfigs[i - 1]) // 添加前面的注释
-          }
-          newDevboxConfigs.push(item)
-          previousIsComment = false
-        } else if (
-          'content' in item &&
-          typeof item.content === 'string' &&
-          item.content.trim().startsWith('#')
+      for (let i = 0; i < existingDevboxConfigLines.length; i++) {
+        const line = existingDevboxConfigLines[i].trim()
+
+        if (
+          line.startsWith('Host') &&
+          line.substring(5).trim().startsWith(newSshHostLabel)
         ) {
-          // 标记当前项为注释
-          previousIsComment = true
-        } else {
-          if (previousIsComment) {
-            newDevboxConfigs.push(devboxConfigs[i - 1]) // 添加前面的注释
+          // 如果当前行是要删除的 Host，开始跳过
+          skipLines = true
+          continue
+        }
+
+        if (skipLines) {
+          // 检查是否到达下一个 Host 或文件结束
+          if (
+            (line.startsWith('Host') && !line.startsWith('HostName')) ||
+            i !== existingDevboxConfigLines.length - 1
+          ) {
+            skipLines = false
           }
-          newDevboxConfigs.push(item)
-          previousIsComment = false
+        }
+
+        if (!skipLines) {
+          newDevboxConfigLines.push(existingDevboxConfigLines[i])
         }
       }
 
-      const newDevboxConfigString = SSHConfig.stringify(newDevboxConfigs as any)
-      fs.writeFileSync(defaultDevboxSSHConfigPath, newDevboxConfigString)
+      // 将新的配置写回文件
+      fs.writeFileSync(
+        defaultDevboxSSHConfigPath,
+        newDevboxConfigLines.join('\n')
+      )
 
       // 5. write new ssh config to .ssh/sealos/devbox_config
       fs.appendFileSync(
