@@ -114,13 +114,28 @@ export class RemoteSSHConnector extends Disposable {
       if (!fs.existsSync(defaultSSHConfigPath)) {
         fs.writeFileSync(defaultSSHConfigPath, '', 'utf8')
       }
-      // 2. ensure .ssh/sealos/devbox_config exists
+      // 2. ensure .ssh/sealos/devbox_config exists and has the correct jurisdiction
       if (!fs.existsSync(defaultDevboxSSHConfigPath)) {
         fs.mkdirSync(path.resolve(os.homedir(), '.ssh/sealos'), {
           recursive: true,
         })
         fs.writeFileSync(defaultDevboxSSHConfigPath, '', 'utf8')
+        // 针对mac和windows区别处理
+        if (os.platform() === 'win32') {
+          // 移除继承的权限
+          execSync(`icacls "${defaultDevboxSSHConfigPath}" /inheritance:r`)
+          // 为当前用户授予完全控制权限
+          execSync(
+            `icacls "${defaultDevboxSSHConfigPath}" /grant:r ${process.env.USERNAME}:F`
+          )
+          // 确保其他用户无法访问
+          execSync(`icacls "${defaultDevboxSSHConfigPath}" /remove:g everyone`)
+        } else {
+          // 设置文件权限为 600（仅文件所有者可读写）
+          execSync(`chmod 600 "${defaultDevboxSSHConfigPath}"`)
+        }
       }
+
       // 3. ensure .ssh/config includes .ssh/sealos/devbox_config
       const existingSSHConfig = fs.readFileSync(defaultSSHConfigPath, 'utf8')
       if (!existingSSHConfig.includes('Include ~/.ssh/sealos/devbox_config')) {
