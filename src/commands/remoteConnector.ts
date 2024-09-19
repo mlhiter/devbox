@@ -155,7 +155,7 @@ export class RemoteSSHConnector extends Disposable {
           // 检查是否到达下一个 Host 或文件结束
           if (
             (line.startsWith('Host') && !line.startsWith('HostName')) ||
-            i !== existingDevboxConfigLines.length - 1
+            i === existingDevboxConfigLines.length - 1
           ) {
             skipLines = false
           }
