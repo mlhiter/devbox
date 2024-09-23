@@ -1,8 +1,8 @@
 {
-  "name": "devbox-sealos",
-  "displayName": "devbox",
+  "name": "devbox",
+  "displayName": "Devbox",
   "description": "help code for cloud sealos devbox",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "keywords": [
     "devbox",
     "sealos",
@@ -17,7 +17,7 @@
     "url": "https://github.com/mlhiter/devbox"
   },
   "homepage": "https://github.com/mlhiter/devbox/blob/master/README.md",
-  "publisher": "mlhiter",
+  "publisher": "sealos",
   "license": "MIT",
   "icon": "images/icon.png",
   "engines": {
