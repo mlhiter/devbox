@@ -20,6 +20,7 @@
     "extversion",
     "grpcs",
     "Keychain",
+    "labring",
     "mlhiter",
     "nextjs",
     "nodeport",

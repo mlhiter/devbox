@@ -1,11 +1,10 @@
 {
-  "name": "devbox",
+  "name": "devbox-aio",
   "displayName": "Devbox",
-  "description": "help code for cloud sealos devbox",
-  "version": "0.7.8",
+  "description": "help code for cloud devbox in sailos/sealos",
+  "version": "0.8.0",
   "keywords": [
     "devbox",
-    "sealos",
     "remote development",
     "remote"
   ],
@@ -17,7 +16,7 @@
     "url": "https://github.com/mlhiter/devbox"
   },
   "homepage": "https://github.com/mlhiter/devbox/blob/master/README.md",
-  "publisher": "sealos",
+  "publisher": "labring",
   "license": "MIT",
   "icon": "images/icon.png",
   "engines": {
