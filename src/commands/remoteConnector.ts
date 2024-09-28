@@ -110,16 +110,24 @@ export class RemoteSSHConnector extends Disposable {
     const sshConfigString = SSHConfig.stringify(sshConfig)
 
     try {
-      // 0. ensure .ssh exists
-      if (!fs.existsSync(path.resolve(os.homedir(), '.ssh'))) {
+      // 1. ensure .ssh/config exists
+      if (!fs.existsSync(defaultSSHConfigPath)) {
         fs.mkdirSync(path.resolve(os.homedir(), '.ssh'), {
           recursive: true,
         })
-      }
-
-      // 1. ensure .ssh/config exists
-      if (!fs.existsSync(defaultSSHConfigPath)) {
         fs.writeFileSync(defaultSSHConfigPath, '', 'utf8')
+        // 设置 .ssh/config 文件的权限
+        if (os.platform() === 'win32') {
+          // Windows 系统
+          execSync(`icacls "${defaultSSHConfigPath}" /inheritance:r`)
+          execSync(
+            `icacls "${defaultSSHConfigPath}" /grant:r ${process.env.USERNAME}:F`
+          )
+          execSync(`icacls "${defaultSSHConfigPath}" /remove:g everyone`)
+        } else {
+          // Unix-like 系统 (Mac, Linux)
+          execSync(`chmod 600 "${defaultSSHConfigPath}"`)
+        }
       }
       // 2. ensure .ssh/sealos/devbox_config exists and has the correct jurisdiction
       if (!fs.existsSync(defaultDevboxSSHConfigPath)) {
