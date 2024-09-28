@@ -110,6 +110,13 @@ export class RemoteSSHConnector extends Disposable {
     const sshConfigString = SSHConfig.stringify(sshConfig)
 
     try {
+      // 0. ensure .ssh exists
+      if (!fs.existsSync(path.resolve(os.homedir(), '.ssh'))) {
+        fs.mkdirSync(path.resolve(os.homedir(), '.ssh'), {
+          recursive: true,
+        })
+      }
+
       // 1. ensure .ssh/config exists
       if (!fs.existsSync(defaultSSHConfigPath)) {
         fs.writeFileSync(defaultSSHConfigPath, '', 'utf8')
