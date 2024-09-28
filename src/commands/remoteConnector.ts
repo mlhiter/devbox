@@ -241,7 +241,7 @@ export class RemoteSSHConnector extends Disposable {
     }
 
     // 创建一个新的连接并打开新的窗口
-    vscode.commands.executeCommand(
+    await vscode.commands.executeCommand(
       'vscode.openFolder',
       vscode.Uri.parse(
         `vscode-remote://ssh-remote+${suffixSSHHostLabel}${workingDir}`
@@ -249,6 +249,9 @@ export class RemoteSSHConnector extends Disposable {
       {
         forceNewWindow: true,
       }
+    )
+    await vscode.window.showInformationMessage(
+      `Connected to ${sshHost} with port ${sshPort} successfully.`
     )
   }
 }
