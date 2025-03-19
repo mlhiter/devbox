@@ -7,7 +7,6 @@ import {
   anthropicModels,
   ApiConfiguration,
   ApiProvider,
-  azureOpenAiDefaultApiVersion,
   geminiModels,
   ModelInfo,
   openAiModelInfoSaneDefaults,

@@ -2,6 +2,7 @@ import { useEvent } from 'react-use'
 import { useCallback, useState } from 'react'
 
 import WelcomeView from './components/welcome/WelcomeView'
+import SettingsView from './components/settings/SettingsView'
 import { ExtensionMessage } from '../../src/shared/ExtensionMessage'
 import { ExtensionStateContextProvider, useExtensionState } from './context/ExtensionStateContext'
 
@@ -67,34 +68,32 @@ const AppContent = () => {
   // }
 
   return (
-    <WelcomeView />
-    // <>
-    //   {showWelcome ? (
-    //     <WelcomeView />
-    //   ) : (
-    //     <>
-    //       {showSettings && (
-    //         <SettingsView onDone={() => setShowSettings(false)} />
-    //       )}
-    //       {showHistory && <HistoryView onDone={() => setShowHistory(false)} />}
-    //       {showMcp && <McpView onDone={() => setShowMcp(false)} />}
-    //       {showAccount && <AccountView onDone={() => setShowAccount(false)} />}
-    //       {/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
-    //       <ChatView
-    //         showHistoryView={() => {
-    //           setShowSettings(false)
-    //           setShowMcp(false)
-    //           setShowHistory(true)
-    //         }}
-    //         isHidden={showSettings || showHistory || showMcp || showAccount}
-    //         showAnnouncement={showAnnouncement}
-    //         hideAnnouncement={() => {
-    //           setShowAnnouncement(false)
-    //         }}
-    //       />
-    //     </>
-    //   )}
-    // </>
+    <>
+      <SettingsView onDone={() => setShowSettings(false)} />
+      {/* {showWelcome ? (
+        <WelcomeView />
+      ) : (
+        <>
+          {showSettings && <SettingsView onDone={() => setShowSettings(false)} />} */}
+      {/* {showHistory && <HistoryView onDone={() => setShowHistory(false)} />}
+          {showMcp && <McpView onDone={() => setShowMcp(false)} />}
+          {showAccount && <AccountView onDone={() => setShowAccount(false)} />} */}
+      {/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
+      {/* <ChatView
+            showHistoryView={() => {
+              setShowSettings(false)
+              setShowMcp(false)
+              setShowHistory(true)
+            }}
+            isHidden={showSettings || showHistory || showMcp || showAccount}
+            showAnnouncement={showAnnouncement}
+            hideAnnouncement={() => {
+              setShowAnnouncement(false)
+            }}
+          /> */}
+      {/* </> */}
+      {/* )} */}
+    </>
   )
 }
 
