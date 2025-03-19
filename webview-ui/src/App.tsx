@@ -1,6 +1,7 @@
 import { useEvent } from 'react-use'
 import { useCallback, useState } from 'react'
 
+import ChatView from './components/chat/ChatView'
 import WelcomeView from './components/welcome/WelcomeView'
 import SettingsView from './components/settings/SettingsView'
 import { ExtensionMessage } from '../../src/shared/ExtensionMessage'
@@ -69,7 +70,19 @@ const AppContent = () => {
 
   return (
     <>
-      <SettingsView onDone={() => setShowSettings(false)} />
+      <ChatView
+        showHistoryView={() => {
+          setShowSettings(false)
+          setShowMcp(false)
+          setShowHistory(true)
+        }}
+        isHidden={showSettings || showHistory || showMcp || showAccount}
+        showAnnouncement={showAnnouncement}
+        hideAnnouncement={() => {
+          setShowAnnouncement(false)
+        }}
+      />
+      {/* <SettingsView onDone={() => setShowSettings(false)} /> */}
       {/* {showWelcome ? (
         <WelcomeView />
       ) : (
