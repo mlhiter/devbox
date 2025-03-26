@@ -37,6 +37,16 @@
   "contributes": {
     "commands": [
       {
+        "command": "devbox.plusButtonClicked",
+        "title": "New Task",
+        "icon": "$(add)"
+      },
+      {
+        "command": "devbox.settingsButtonClicked",
+        "title": "Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
         "command": "devbox.connectRemoteSSH",
         "title": "%devbox.connectRemoteSSH.title%"
       },
@@ -143,6 +153,11 @@
           "id": "devboxListView",
           "title": "%devbox.devbox.title%",
           "icon": "images/explorer.svg"
+        },
+        {
+          "id": "devboxBotProvider",
+          "title": "Devbox AI",
+          "icon": "images/bot.svg"
         }
       ],
       "panel": [
@@ -166,6 +181,16 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "devbox.plusButtonClicked",
+          "group": "navigation@1",
+          "when": "view == devboxBotProvider"
+        },
+        {
+          "command": "devbox.settingsButtonClicked",
+          "when": "view == devboxBotProvider",
+          "group": "navigation@2"
+        },
         {
           "command": "devboxDashboard.createDevbox",
           "when": "view == devboxDashboard",

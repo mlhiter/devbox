@@ -5,15 +5,54 @@ import { Logger } from './common/logger'
 import { UriHandler } from './utils/handleUri'
 import { isDevelopment } from './constant/api'
 import { ToolCommands } from './commands/tools'
-import { RemoteSSHConnector } from './commands/remoteConnector'
-import { DevboxListViewProvider } from './providers/DevboxListViewProvider'
-import { NetworkViewProvider } from './providers/NetworkViewProvider'
 import { DBViewProvider } from './providers/DBViewProvider'
 import { GlobalStateManager } from './utils/globalStateManager'
+import { RemoteSSHConnector } from './commands/remoteConnector'
+import { NetworkViewProvider } from './providers/NetworkViewProvider'
+import { DevboxListViewProvider } from './providers/DevboxListViewProvider'
+
+let outputChannel: vscode.OutputChannel
 
 export async function activate(context: vscode.ExtensionContext) {
   // Logger
-  Logger.init(context)
+  outputChannel = vscode.window.createOutputChannel('Devbox')
+  context.subscriptions.push(outputChannel)
+
+  Logger.init(outputChannel)
+  Logger.log('Devbox extension activated')
+
+  // Devbox AI Sidebar
+  const sidebarProvider = new DevboxBotProvider(context)
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(DevboxBotProvider.sideBarId, sidebarProvider, {
+      webviewOptions: { retainContextWhenHidden: true },
+    })
+  )
+
+  // Click this button to start a new chat
+  context.subscriptions.push(
+    vscode.commands.registerCommand('devbox.plusButtonClicked', async () => {
+      Logger.log('Plus button Clicked')
+      await sidebarProvider.clearTask()
+      await sidebarProvider.postStateToWebview()
+      await sidebarProvider.postMessageToWebview({
+        type: 'action',
+        action: 'chatButtonClicked',
+      })
+    })
+  )
+
+  // Click this button to open AI settings
+  context.subscriptions.push(
+    vscode.commands.registerCommand('devbox.settingsButtonClicked', () => {
+      //vscode.window.showInformationMessage(message)
+      sidebarProvider.postMessageToWebview({
+        type: 'action',
+        action: 'settingsButtonClicked',
+      })
+    })
+  )
 
   // tools
   const tools = new ToolCommands(context)
