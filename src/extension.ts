@@ -10,6 +10,7 @@ import { DevboxListViewProvider } from './providers/DevboxListViewProvider'
 import { NetworkViewProvider } from './providers/NetworkViewProvider'
 import { DBViewProvider } from './providers/DBViewProvider'
 import { GlobalStateManager } from './utils/globalStateManager'
+import { installRemoteExtensions } from './utils/remote'
 
 export async function activate(context: vscode.ExtensionContext) {
   // Logger
@@ -29,6 +30,15 @@ export async function activate(context: vscode.ExtensionContext) {
   // devboxList view
   const devboxListViewProvider = new DevboxListViewProvider(context)
   context.subscriptions.push(devboxListViewProvider)
+
+  // when in remote workspace,install Cline automatically
+  if (vscode.env.remoteName === 'ssh-remote') {
+    installRemoteExtensions().catch((err) =>
+      vscode.window.showErrorMessage(
+        `Install remote extensions failed: ${err.message}`
+      )
+    )
+  }
 
   // update api base url
   const workspaceFolders = vscode.workspace.workspaceFolders
