@@ -4,6 +4,11 @@ export async function installRemoteExtensions() {
   const extensionsToInstall = ['streetsidesoftware.code-spell-checker']
 
   for (const extId of extensionsToInstall) {
+    const extension = vscode.extensions.getExtension(extId)
+    if (extension) {
+      continue
+    }
+
     try {
       await vscode.commands.executeCommand(
         'workbench.extensions.installExtension',
