@@ -9,19 +9,24 @@ export type IDE =
   | 'trae-cn'
 
 export async function installRemoteExtensions() {
-  const extensionsToInstall = ['labring.sline']
-
+  const extensionsToInstall = ['mlhiter.sline']
   const ide = vscode.env.uriScheme as IDE
-
   const extensionsPath = getExtensionsPath(ide)
-  const extensionDir = await vscode.workspace.fs.readDirectory(
-    vscode.Uri.parse(extensionsPath)
-  )
 
-  for (const extId of extensionsToInstall) {
-    try {
-      const isInstalled = extensionDir.some((file) =>
-        file[0].startsWith(extId.toLowerCase())
+  try {
+    const extensionsJsonPath = vscode.Uri.parse(
+      `${extensionsPath}/extensions.json`
+    )
+    const extensionsJsonContent = await vscode.workspace.fs.readFile(
+      extensionsJsonPath
+    )
+    const installedExtensions = JSON.parse(
+      Buffer.from(extensionsJsonContent).toString()
+    )
+
+    for (const extId of extensionsToInstall) {
+      const isInstalled = installedExtensions.some(
+        (ext: { identifier: { id: string } }) => ext.identifier.id === extId
       )
 
       if (!isInstalled) {
@@ -33,11 +38,11 @@ export async function installRemoteExtensions() {
       } else {
         console.log(`Extension ${extId} is already installed`)
       }
-    } catch (err) {
-      vscode.window.showWarningMessage(
-        `Install ${extId} failed: ${err.message}`
-      )
     }
+  } catch (err) {
+    vscode.window.showWarningMessage(
+      `Read or install extensions failed: ${err.message}`
+    )
   }
 }
 
