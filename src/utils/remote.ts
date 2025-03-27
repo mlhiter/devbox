@@ -9,7 +9,7 @@ export type IDE =
   | 'trae-cn'
 
 export async function installRemoteExtensions() {
-  const extensionsToInstall = ['streetsidesoftware.code-spell-checker']
+  const extensionsToInstall = ['labring.sline']
 
   const ide = vscode.env.uriScheme as IDE
 
